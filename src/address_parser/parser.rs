@@ -86,7 +86,7 @@ impl<'a> AddressParser<'a> {
                             let e = self.expr(1)?;
                             Ok(Node::Assignment(symbol_2, e).boxed())
                         }
-                        _ => eyre::bail!("Two consecutive symbols"),
+                        other => eyre::bail!("Two consecutive symbols: {other}"),
                     },
                     _ => Ok(Node::Var(symbol).boxed()),
                 }

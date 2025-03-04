@@ -73,42 +73,30 @@ impl<'a> Lexer<'a> {
                 let start = self.pos;
                 let start_char = self.curr;
                 let mut end = start + 1;
-                self.bump();
-                // module name like:
-                // process.exe
-                // module.dll
-                let mut is_module_name = false;
-                // Symbol like:
-                // OFFSET_ADDED_1 (which have alphabetic)
-                //
-                // or hex number
-                // 0xF8
-                // 0XFA
-                let is_number_hex_parser =
-                    start_char == '0' && (self.curr == 'x' || self.curr == 'X');
 
-                while !self.eof && !self.curr.is_whitespace() {
-                    // enable parse module_name
-                    if !is_module_name && self.curr == '.' {
-                        // we got '.' but parser mode is number
-                        if is_number_hex_parser {
-                            println!("E1");
+                self.bump();
+
+                // yes this is hex number
+                if start_char == '0' && (self.curr == 'x' || self.curr == 'X') {
+                    // move next
+                    self.bump();
+                    end += 1;
+
+                    while !self.eof && !self.curr.is_whitespace() {
+                        if self.curr == '.' {
+                            // why we get . here
                             self.error = true;
                             return Err(eyre::eyre!(
                                 "{}{}",
-                                obfstr!("Failed parse type number/module_name/symbol_name at "),
+                                obfstr!("Failed parse type hex number at "),
                                 self.pos
                             ));
                         }
 
-                        is_module_name = true;
+                        self.bump();
+                        end += 1;
                     }
 
-                    self.bump();
-                    end += 1;
-                }
-
-                if is_number_hex_parser {
                     // +2 for remove 0x || 0X
                     return Ok(Token::Number(isize::from_str_radix(
                         &self.src[start + 2..end],
@@ -116,10 +104,41 @@ impl<'a> Lexer<'a> {
                     )?));
                 }
 
+                let mut is_module_name = false;
+                let mut has_non_numberic = !start_char.is_ascii_digit();
+                // 3 case left
+                //
+                // number base 10
+                // symbol name: let, with, while, custume variable name
+                // module name: target.dll
+                while !self.eof
+                    && (self.curr.is_ascii_hexdigit() // this include number
+                        || self.curr.is_alphabetic() // abcd
+                        || self.curr == '.')
+                {
+                    // dot => module
+                    if !is_module_name && self.curr == '.' {
+                        is_module_name = true;
+                    }
+
+                    if !has_non_numberic && !self.curr.is_ascii_digit() {
+                        has_non_numberic = true;
+                    }
+
+                    self.bump();
+                    end += 1;
+                }
+
                 if is_module_name {
                     return Ok(Token::ModuleSymbol(self.src[start..end].to_string()));
                 }
 
+                if !has_non_numberic {
+                    return Ok(Token::Number(isize::from_str_radix(
+                        &self.src[start..end],
+                        10,
+                    )?));
+                }
                 Ok(Token::Symbol(self.src[start..end].to_string()))
             }
             '+' => {
@@ -153,7 +172,6 @@ impl<'a> Lexer<'a> {
             }
 
             token => {
-                println!("E2");
                 self.error = true;
                 Err(eyre::eyre!(
                     "{} {token} at {}",

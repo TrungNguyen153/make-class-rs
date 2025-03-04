@@ -21,7 +21,7 @@ fn main() {
     tracing::subscriber::set_global_default(sub).unwrap();
 
     info!(" Go ");
-    let src = "((10 + 11) + 1) / 2";
+    let src = "((10 + 11) + [target.dll]) / 0x2";
     let mut parser = AddressParser::new(src);
     let eval = parser.parse().unwrap();
 
