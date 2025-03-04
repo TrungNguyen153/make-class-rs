@@ -4,6 +4,8 @@ extern crate obfstr;
 extern crate tracing;
 
 pub mod address_parser;
+pub mod class;
+pub mod field;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
