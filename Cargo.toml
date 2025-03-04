@@ -1,0 +1,31 @@
+[package]
+name = "make-class-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { version = "1.0.218", features = ["derive"]}
+parking_lot = "0.12.3"
+
+# UI
+eframe = "0.31.0"
+egui_extras = "0.31.0"
+egui-notify = "0.19.0"
+egui_logger = "0.6.3"
+
+rayon = "1.10.0"
+eyre = "0.6.12"
+rfd = "0.15.2"
+
+log = "0.4.26"
+nom = "8.0.0"
+itertools = "0.14.0"
+
+paste = "1.0.15"
+
+obfstr = { git = "https://github.com/CasualX/obfstr", rev = "e581c85" }
+iced-x86 = "1.21.0"
+once_cell = "1.20.3"
+
+tracing = "0.1.41"
+tracing-subscriber = "0.3.19"
