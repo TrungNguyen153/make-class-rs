@@ -12,12 +12,16 @@ extern crate obfstr;
 #[macro_use]
 extern crate tracing;
 
+mod address;
 pub mod address_parser;
 mod app;
 pub mod class;
 pub mod field;
 mod global_state;
 mod hotkeys;
+mod inspection;
+pub mod memory;
+mod styling;
 mod ui;
 
 pub fn run_app() {

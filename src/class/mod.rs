@@ -4,7 +4,14 @@ use std::cell::Cell;
 
 use crate::field::Field;
 
-pub type ClassId = usize;
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
+pub struct ClassId(usize);
+
+impl From<usize> for ClassId {
+    fn from(value: usize) -> Self {
+        Self(value)
+    }
+}
 
 pub struct Class {
     id: ClassId,
@@ -14,9 +21,9 @@ pub struct Class {
 }
 
 impl Class {
-    pub fn new(id: ClassId, name: impl Into<String>) -> Self {
+    pub fn new(id: impl Into<ClassId>, name: impl Into<String>) -> Self {
         Self {
-            id,
+            id: id.into(),
             name: name.into(),
             address: 0.into(),
             // TODO default showup some hex bytes
@@ -24,9 +31,9 @@ impl Class {
         }
     }
 
-    pub fn empty(id: ClassId, name: impl Into<String>) -> Self {
+    pub fn empty(id: impl Into<ClassId>, name: impl Into<String>) -> Self {
         Self {
-            id,
+            id: id.into(),
             name: name.into(),
             address: 0.into(),
             fields: vec![],
