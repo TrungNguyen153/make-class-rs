@@ -4,6 +4,7 @@ use crate::{
     address_parser::AddressResolver,
     class::class_list::ClassList,
     hotkeys::HotkeyManager,
+    inspection::InspectorSelection,
     memory::{MemoryReaderWriter, MemoryState, NullMemoryReader},
 };
 
@@ -27,6 +28,7 @@ pub fn global_state() -> &'static mut GlobalState {
 }
 
 pub struct GlobalState {
+    pub selection_field: Option<InspectorSelection>,
     pub class_list: ClassList,
     pub hotkeys: HotkeyManager,
 
@@ -40,6 +42,8 @@ impl Default for GlobalState {
             class_list: Default::default(),
             hotkeys: Default::default(),
             memory: Box::new(NullMemoryReader) as Box<dyn MemoryState>,
+            toasts: Toasts::new(),
+            selection_field: None,
         }
     }
 }

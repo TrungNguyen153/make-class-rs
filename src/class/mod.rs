@@ -1,8 +1,8 @@
 pub mod class_list;
 
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 
-use crate::field::Field;
+use crate::{address::AddressString, field::Field};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
 pub struct ClassId(usize);
@@ -16,7 +16,7 @@ impl From<usize> for ClassId {
 pub struct Class {
     id: ClassId,
     pub name: String,
-    pub address: Cell<usize>,
+    pub address: RefCell<AddressString>,
     pub fields: Vec<Box<dyn Field>>,
 }
 
@@ -25,7 +25,7 @@ impl Class {
         Self {
             id: id.into(),
             name: name.into(),
-            address: 0.into(),
+            address: RefCell::new(0.into()),
             // TODO default showup some hex bytes
             fields: vec![],
         }
@@ -35,7 +35,7 @@ impl Class {
         Self {
             id: id.into(),
             name: name.into(),
-            address: 0.into(),
+            address: RefCell::new(0.into()),
             fields: vec![],
         }
     }

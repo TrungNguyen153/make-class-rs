@@ -1,7 +1,9 @@
-use eframe::egui::{CentralPanel, Context, Key, Ui, collapsing_header::CollapsingState};
+use eframe::egui::{
+    CentralPanel, Context, Key, ScrollArea, Ui, collapsing_header::CollapsingState,
+};
 
 use crate::{
-    address::parse_address_str, field::FieldResponse, global_state::global_state,
+    address::AddressString, field::FieldResponse, global_state::global_state,
     inspection::InspectorContext, styling::get_current_font_size_hex_view,
 };
 
@@ -55,9 +57,9 @@ impl InspectorPanel {
 
                     // parse addr on enter
                     if r.lost_focus() && ui.input(|i| i.key_pressed(Key::Enter)) {
-                        match parse_address_str(&self.address_buffer) {
+                        match AddressString::load_str(&self.address_buffer) {
                             Ok(addr) => {
-                                active_class.address.set(addr);
+                                active_class.address.replace(addr);
                             }
                             Err(e) => {
                                 global_state().toasts.error(format!("{e}"));
@@ -67,7 +69,7 @@ impl InspectorPanel {
 
                     // reset it for current data
                     if !r.has_focus() {
-                        self.address_buffer = format!("0x{:X}", active_class.address.get());
+                        self.address_buffer = active_class.address.borrow().to_string();
                     }
                 })
                 .body(|ui| self.inspector(ui))
@@ -79,14 +81,37 @@ impl InspectorPanel {
     }
 
     fn inspector(&mut self, ui: &mut Ui) -> Option<FieldResponse> {
-        let ctx = InspectorContext {
-            selection: todo!(),
-            class_container: todo!(),
-            address: todo!(),
-            offset: todo!(),
-            class_list: todo!(),
-            toasts: todo!(),
+        let state = global_state();
+
+        let class = state.class_list.selected_class()?;
+
+        let mut ctx = InspectorContext {
+            selection: state.selection_field,
+            class_container: state.class_list.selected()?,
+            address: class.address.borrow().address_value(),
+            offset: 0,
+            class_list: &state.class_list,
+            toasts: &mut state.toasts,
         };
-        None
+
+        let response = ScrollArea::vertical()
+            .auto_shrink([false, true])
+            .hscroll(true)
+            .enable_scrolling(self.allow_scroll)
+            .show(ui, |ui| {
+                match class
+                    .fields
+                    .iter()
+                    .fold(None, |r, f| r.or(f.draw(ui, &mut ctx)))
+                {
+                    Some(r) => Some(r),
+                    None => None,
+                }
+                //
+            });
+
+        state.selection_field = ctx.selection;
+
+        response.inner
     }
 }
