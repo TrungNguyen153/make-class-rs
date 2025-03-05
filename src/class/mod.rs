@@ -1,3 +1,5 @@
+pub mod class_list;
+
 use std::cell::Cell;
 
 use crate::field::Field;
