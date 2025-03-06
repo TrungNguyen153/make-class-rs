@@ -1,10 +1,12 @@
 use eframe::egui::{Color32, Theme};
 
 use crate::{
+    field::allocate_padding,
     global_state::global_state,
     ui::{
-        class_list_panel::ClassListPanel, inspector_panel::InspectorPanel,
-        toolbar_panel::ToolBarPanel,
+        class_list_panel::ClassListPanel,
+        inspector_panel::InspectorPanel,
+        toolbar_panel::{ToolBarPanel, ToolBarResponse},
     },
 };
 
@@ -22,11 +24,87 @@ impl MakeClassApp {
             toolbar: ToolBarPanel::default(),
         }
     }
+
+    fn progress_toolbar_response(&mut self, response: ToolBarResponse) {
+        match response {
+            ToolBarResponse::ChangeFieldKind(new) => {
+                let Some(selected) = &mut global_state().selection_field else {
+                    return;
+                };
+
+                let class_id = selected.class_id;
+                let field_id = selected.field_id;
+
+                let Some(class) = global_state().class_list.get_class_mut(class_id) else {
+                    info!("{}", obfstr!("Why class id not here here ??"));
+                    global_state().selection_field.take();
+                    return;
+                };
+
+                let Some(field_pos) = class.fields.iter().position(|f| f.id() == field_id) else {
+                    info!("{}", obfstr!("Why field id not here here ??"));
+                    global_state().selection_field.take();
+                    return;
+                };
+
+                let old_size = class.fields[field_pos].field_size();
+                let old_name = class.fields[field_pos].name();
+                let new_size = new.field_size();
+                let new_id = new.id();
+
+                // load old name to it
+                if let Some(old_name) = old_name {
+                    new.set_name(old_name);
+                }
+
+                if old_size > new_size {
+                    let mut padding = allocate_padding(old_size - new_size);
+                    class.fields[field_pos] = new;
+                    while let Some(pad) = padding.pop() {
+                        class.fields.insert(field_pos + 1, pad);
+                    }
+                    selected.field_id = new_id;
+                } else {
+                    let (mut steal_size, mut steal_len) = (0, 0);
+                    while steal_size < new_size {
+                        let index = field_pos + steal_len;
+                        if index > class.fields.len() {
+                            // out of class size
+                            break;
+                        }
+
+                        steal_size += class.fields[index].field_size();
+                        steal_len += 1;
+                    }
+
+                    if steal_size < new_size {
+                        global_state()
+                            .toasts
+                            .error(obfstr!("Not enough space for a new field"));
+                    } else {
+                        class.fields.drain(field_pos..field_pos + steal_len);
+
+                        let mut padding = allocate_padding(steal_size - new_size);
+
+                        class.fields.insert(field_pos, new);
+
+                        while let Some(pad) = padding.pop() {
+                            class.fields.insert(field_pos + 1, pad);
+                        }
+
+                        selected.field_id = new_id;
+                    }
+                }
+            }
+        };
+    }
 }
 impl eframe::App for MakeClassApp {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_theme(Theme::Dark);
-        let tool_bar_response = self.toolbar.show(ctx);
+        if let Some(toolbar_response) = self.toolbar.show(ctx) {
+            self.progress_toolbar_response(toolbar_response);
+        }
 
         self.class_list_panel.show(ctx);
         if let Some(r) = self.inspector.show(ctx) {

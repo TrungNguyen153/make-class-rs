@@ -40,7 +40,9 @@ pub struct Class {
 fn create_dummy_fields() -> Vec<Box<dyn Field>> {
     vec![
         HexField::<8>::default().boxed(),
-        HexField::<8>::default().boxed(),
+        HexField::<16>::default().boxed(),
+        HexField::<32>::default().boxed(),
+        HexField::<64>::default().boxed(),
         FloatField::<4>::default().boxed(),
         BoolField::default().boxed(),
         IntField::<8>::signed_default().boxed(),
@@ -54,10 +56,10 @@ fn create_dummy_fields() -> Vec<Box<dyn Field>> {
         VectorField::<2>::default().boxed(),
         VectorField::<3>::default().boxed(),
         VectorField::<4>::default().boxed(),
-        TextField::<8, 16>::default().boxed(),
-        TextField::<16, 16>::default().boxed(),
-        PointerTextField::<8, 16>::default().boxed(),
-        PointerTextField::<16, 16>::default().boxed(),
+        TextField::<8>::default().boxed(),
+        TextField::<16>::default().boxed(),
+        PointerTextField::<8>::default().boxed(),
+        PointerTextField::<16>::default().boxed(),
     ]
 }
 

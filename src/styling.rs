@@ -17,7 +17,7 @@ pub fn create_text_format(underline: bool, color: Color32) -> TextFormat {
     }
 }
 
-pub static mut DISPLAY_OFFSET_IN_HEX: bool = true;
+pub static mut DISPLAY_OFFSET_IN_HEX: bool = false;
 pub fn create_text_offset_format(offset: usize) -> String {
     if unsafe { DISPLAY_OFFSET_IN_HEX } {
         format!("0x{offset:04X}")

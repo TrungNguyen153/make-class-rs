@@ -22,7 +22,7 @@ impl<const N: usize> HexField<N> {
             id: FieldId::next_id(),
         }
     }
-    fn byte_view(&self, ctx: &mut InspectorContext, job: &mut LayoutJob, buf: &[u8; N]) {
+    fn byte_view(&self, ctx: &mut InspectorContext, job: &mut LayoutJob, buf: &[u8]) {
         for (i, b) in buf.iter().enumerate() {
             let b = *b;
             // generate unique color for each byte
@@ -45,19 +45,19 @@ impl<const N: usize> HexField<N> {
         }
     }
 
-    fn int_view(&self, ui: &mut Ui, ctx: &mut InspectorContext, buf: &[u8; N]) {
+    fn int_view(&self, ui: &mut Ui, ctx: &mut InspectorContext, buf: &[u8]) {
         let mut job = LayoutJob::default();
         let (mut high, mut low) = (0i64, 0i64);
-        let displayed = if N == 1 {
+        let displayed = if N == 8 {
             buf[0] as i64
         } else {
-            let half = N / 2;
+            let half = N / 8 / 2;
             (high, low) = int_high_low_from_le::<N>(&buf[..half], &buf[half..]);
 
             match N {
-                2 => i16::from_le_bytes(buf[..].try_into().unwrap()) as i64,
-                4 => i32::from_le_bytes(buf[..].try_into().unwrap()) as i64,
-                8 => i64::from_le_bytes(buf[..].try_into().unwrap()),
+                16 => i16::from_le_bytes(buf[..].try_into().unwrap()) as i64,
+                32 => i32::from_le_bytes(buf[..].try_into().unwrap()) as i64,
+                64 => i64::from_le_bytes(buf[..].try_into().unwrap()),
                 _ => unreachable!(),
             }
         };
@@ -73,18 +73,18 @@ impl<const N: usize> HexField<N> {
             ctx.toggle_select(self.id);
         }
 
-        if N != 1 {
+        if N != 8 {
             r.on_hover_text(format!("High: {high}\nLow: {low}"));
         }
     }
 
-    fn float_view(&self, ui: &mut Ui, ctx: &mut InspectorContext, buf: &[u8; N]) {
-        if N != 4 && N != 8 {
+    fn float_view(&self, ui: &mut Ui, ctx: &mut InspectorContext, buf: &[u8]) {
+        if N != 32 && N != 64 {
             return;
         }
 
         let mut job = LayoutJob::default();
-        let displayed = if N == 4 {
+        let displayed = if N == 32 {
             f32::from_ne_bytes(buf[..].try_into().unwrap()) as f64
         } else {
             f64::from_ne_bytes(buf[..].try_into().unwrap())
@@ -101,14 +101,14 @@ impl<const N: usize> HexField<N> {
             ctx.toggle_select(self.id);
         }
 
-        if N == 8 {
+        if N == 64 {
             let (high, low) = (
                 f32::from_ne_bytes(buf[..4].try_into().unwrap()),
                 f32::from_ne_bytes(buf[4..].try_into().unwrap()),
             );
 
             r.on_hover_text(format!("Full:{displayed}\nHigh: {high}\nLow: {low}"));
-        } else if N == 4 {
+        } else {
             r.on_hover_text(format!("Full:{displayed}"));
         }
     }
@@ -117,10 +117,10 @@ impl<const N: usize> HexField<N> {
         &self,
         ui: &mut Ui,
         ctx: &mut InspectorContext,
-        buf: &[u8; N],
+        buf: &[u8],
         response: &mut Option<FieldResponse>,
     ) {
-        if N != 8 {
+        if N != 64 {
             return;
         }
         let address = usize::from_ne_bytes(buf[..].try_into().unwrap());
@@ -160,17 +160,16 @@ impl<const N: usize> Field for HexField<N> {
     }
 
     fn field_size(&self) -> usize {
-        N
+        N / 8
     }
 
     fn draw(&self, ui: &mut eframe::egui::Ui, ctx: &mut InspectorContext) -> Option<FieldResponse> {
-        let mut buf = [0; N];
+        let mut buf = vec![0; N / 8];
         global_state()
             .memory
             .read_buf(ctx.address + ctx.offset, &mut buf);
         let mut response = None;
         ui.horizontal(|ui| {
-            //
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
             self.byte_view(ctx, &mut job, &buf);
@@ -186,22 +185,23 @@ impl<const N: usize> Field for HexField<N> {
             self.float_view(ui, ctx, &buf);
             self.pointer_view(ui, ctx, &buf, &mut response);
         });
-        ctx.offset += N;
+        ctx.offset += self.field_size();
         response
     }
 }
 
 fn int_high_low_from_le<const N: usize>(high: &[u8], low: &[u8]) -> (i64, i64) {
+    // info!("N={N} high={high:?} low={low:?}");
     match N {
-        8 => (
+        64 => (
             i32::from_ne_bytes(high.try_into().unwrap()) as _,
             i32::from_ne_bytes(low.try_into().unwrap()) as _,
         ),
-        4 => (
+        32 => (
             i16::from_ne_bytes(high.try_into().unwrap()) as _,
             i16::from_ne_bytes(low.try_into().unwrap()) as _,
         ),
-        2 => (
+        16 => (
             i8::from_ne_bytes(high.try_into().unwrap()) as _,
             i8::from_ne_bytes(low.try_into().unwrap()) as _,
         ),

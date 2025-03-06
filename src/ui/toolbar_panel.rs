@@ -105,11 +105,6 @@ impl ToolBarPanel {
             }
         });
 
-        group_type! {
-            ui,
-            [bool, Color32::GOLD, Color32::TRANSPARENT, || BoolField::default()],
-        }
-
         ui.vertical(|ui| {
             group_type! {
                 ui,
@@ -141,6 +136,7 @@ impl ToolBarPanel {
         ui.vertical(|ui| {
             group_type! {
                 ui,
+                [bool, Color32::GOLD, Color32::TRANSPARENT, || BoolField::default()],
                 [vec2, Color32::GREEN, Color32::TRANSPARENT, || VectorField::<2>::default()],
                 [vec3, Color32::GREEN, Color32::TRANSPARENT, || VectorField::<3>::default()],
                 [vec4, Color32::GREEN, Color32::TRANSPARENT, || VectorField::<4>::default()],
@@ -150,16 +146,16 @@ impl ToolBarPanel {
         ui.vertical(|ui| {
             group_type! {
                 ui,
-                [utf8, Color32::GREEN, Color32::TRANSPARENT, || TextField::<8, 16>::default()],
-                [utf16, Color32::GREEN, Color32::TRANSPARENT, || TextField::<16, 16>::default()],
+                [utf8, Color32::GREEN, Color32::TRANSPARENT, || TextField::<8>::default()],
+                [utf16, Color32::GREEN, Color32::TRANSPARENT, || TextField::<16>::default()],
             }
         });
 
         ui.vertical(|ui| {
             group_type! {
                 ui,
-                [ptrUtf8, Color32::GREEN, Color32::TRANSPARENT, || PointerTextField::<8, 16>::default()],
-                [ptrUtf16, Color32::GREEN, Color32::TRANSPARENT, || PointerTextField::<16, 16>::default()],
+                [ptrUtf8, Color32::GREEN, Color32::TRANSPARENT, || PointerTextField::<8>::default()],
+                [ptrUtf16, Color32::GREEN, Color32::TRANSPARENT, || PointerTextField::<16>::default()],
             }
         });
 

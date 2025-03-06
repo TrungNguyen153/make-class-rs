@@ -20,6 +20,8 @@ use crate::{
     value::Value,
 };
 
+use self::hex::HexField;
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
 pub struct FieldId(u64);
 
@@ -304,4 +306,30 @@ pub fn display_field_value(
     } else if r.clicked() {
         ctx.toggle_select(field.id());
     }
+}
+
+pub fn allocate_padding(mut n: usize) -> Vec<Box<dyn Field>> {
+    let mut fields = vec![];
+
+    while n >= 8 {
+        fields.push(Box::new(HexField::<64>::new()) as _);
+        n -= 8;
+    }
+
+    while n >= 4 {
+        fields.push(Box::new(HexField::<32>::new()) as _);
+        n -= 4;
+    }
+
+    while n >= 2 {
+        fields.push(Box::new(HexField::<16>::new()) as _);
+        n -= 2;
+    }
+
+    while n > 0 {
+        fields.push(Box::new(HexField::<8>::new()) as _);
+        n -= 1;
+    }
+
+    fields
 }
