@@ -2,12 +2,16 @@ use eframe::egui::{Color32, Theme};
 
 use crate::{
     global_state::global_state,
-    ui::{class_list_panel::ClassListPanel, inspector_panel::InspectorPanel},
+    ui::{
+        class_list_panel::ClassListPanel, inspector_panel::InspectorPanel,
+        toolbar_panel::ToolBarPanel,
+    },
 };
 
 pub struct MakeClassApp {
     class_list_panel: ClassListPanel,
     inspector: InspectorPanel,
+    toolbar: ToolBarPanel,
 }
 
 impl MakeClassApp {
@@ -15,12 +19,15 @@ impl MakeClassApp {
         Self {
             class_list_panel: ClassListPanel::default(),
             inspector: InspectorPanel::default(),
+            toolbar: ToolBarPanel::default(),
         }
     }
 }
 impl eframe::App for MakeClassApp {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_theme(Theme::Dark);
+        let tool_bar_response = self.toolbar.show(ctx);
+
         self.class_list_panel.show(ctx);
         if let Some(r) = self.inspector.show(ctx) {
             //
