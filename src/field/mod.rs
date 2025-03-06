@@ -1,6 +1,11 @@
 pub mod boolean;
+pub mod class_instance;
+pub mod class_pointer;
 pub mod float;
 pub mod hex;
+pub mod int;
+pub mod string;
+pub mod vector;
 
 use std::{cell::RefCell, sync::atomic::AtomicU64};
 
@@ -202,6 +207,18 @@ pub trait Field {
                 // or select with single click
                 ctx.toggle_select(self.id());
             }
+        }
+    }
+
+    fn display_ptr_arrow(&self, ui: &mut egui::Ui, ctx: &mut InspectorContext, color: Color32) {
+        let mut job = LayoutJob::default();
+        job.append("->", 0., create_text_format(false, color));
+
+        let r = ui.add(Label::new(job).sense(Sense::click()));
+
+        if r.clicked() {
+            // or select with single click
+            ctx.toggle_select(self.id());
         }
     }
 }

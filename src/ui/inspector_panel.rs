@@ -92,6 +92,7 @@ impl InspectorPanel {
             offset: 0,
             class_list: &state.class_list,
             toasts: &mut state.toasts,
+            inspector_level: 0,
         };
 
         let response = ScrollArea::vertical()

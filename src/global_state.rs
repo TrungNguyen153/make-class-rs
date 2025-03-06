@@ -1,11 +1,10 @@
 use egui_notify::Toasts;
 
 use crate::{
-    address_parser::AddressResolver,
     class::class_list::ClassList,
     hotkeys::HotkeyManager,
     inspection::InspectorSelection,
-    memory::{MemoryReaderWriter, MemoryState, NullMemoryReader},
+    memory::{MemoryState, NullMemoryReader},
 };
 
 static mut GLOBAL: Option<GlobalState> = None;

@@ -1,3 +1,7 @@
+use crate::field::{
+    Field, class_instance::ClassInstanceField, class_pointer::ClassPointerField, hex::HexField,
+};
+
 use super::{Class, ClassId};
 
 pub struct ClassList {
@@ -7,8 +11,17 @@ pub struct ClassList {
 
 impl Default for ClassList {
     fn default() -> Self {
+        let c1 = Class::new(0, "Dummy");
+        let mut c2 = Class::new(1, "Dummy2");
+        c2.add_field(ClassInstanceField::new_with_class_id(0.into()).boxed());
+        c2.add_field(HexField::<4>::default().boxed());
+        c2.add_field(HexField::<4>::default().boxed());
+        let mut c3 = Class::new(2, "Dummy3");
+        c3.add_field(ClassPointerField::new_with_class_id(1.into()).boxed());
+        c3.add_field(HexField::<4>::default().boxed());
+        c3.add_field(HexField::<8>::default().boxed());
         Self {
-            classes: vec![Class::new(0, "Dummy")],
+            classes: vec![c1, c2, c3],
             selected: Some(0.into()),
         }
     }
@@ -52,5 +65,9 @@ impl ClassList {
         if let Some(p) = self.classes.iter().position(|c| c.id() == class_id) {
             self.classes.remove(p);
         }
+    }
+
+    pub fn get_class(&self, class_id: ClassId) -> Option<&Class> {
+        self.classes.iter().find(|c| c.id() == class_id)
     }
 }

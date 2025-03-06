@@ -4,11 +4,25 @@ use std::cell::RefCell;
 
 use crate::{
     address::AddressString,
-    field::{Field, boolean::BoolField, float::FloatField, hex::HexField},
+    field::{
+        Field,
+        boolean::BoolField,
+        float::FloatField,
+        hex::HexField,
+        int::IntField,
+        string::{PointerTextField, TextField},
+        vector::VectorField,
+    },
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
 pub struct ClassId(usize);
+
+impl Default for ClassId {
+    fn default() -> Self {
+        Self(fastrand::usize(..))
+    }
+}
 
 impl From<usize> for ClassId {
     fn from(value: usize) -> Self {
@@ -29,6 +43,21 @@ fn create_dummy_fields() -> Vec<Box<dyn Field>> {
         HexField::<8>::default().boxed(),
         FloatField::<4>::default().boxed(),
         BoolField::default().boxed(),
+        IntField::<1>::signed_default().boxed(),
+        IntField::<2>::signed_default().boxed(),
+        IntField::<4>::signed_default().boxed(),
+        IntField::<8>::signed_default().boxed(),
+        IntField::<1>::unsigned_default().boxed(),
+        IntField::<2>::unsigned_default().boxed(),
+        IntField::<4>::unsigned_default().boxed(),
+        IntField::<8>::unsigned_default().boxed(),
+        VectorField::<2>::default().boxed(),
+        VectorField::<3>::default().boxed(),
+        VectorField::<4>::default().boxed(),
+        TextField::<8, 16>::default().boxed(),
+        TextField::<16, 16>::default().boxed(),
+        PointerTextField::<8, 16>::default().boxed(),
+        PointerTextField::<16, 16>::default().boxed(),
     ]
 }
 
@@ -61,5 +90,9 @@ impl Class {
 
     pub fn extend_fields(&mut self, fields: impl Into<Vec<Box<dyn Field>>>) {
         self.fields.extend(fields.into());
+    }
+
+    pub fn add_field(&mut self, field: Box<dyn Field>) {
+        self.fields.push(field);
     }
 }

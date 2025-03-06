@@ -14,6 +14,7 @@ pub struct InspectorContext<'a> {
 
     pub class_list: &'a ClassList,
     pub toasts: &'a mut Toasts,
+    pub inspector_level: usize,
 }
 
 #[derive(Clone, Copy)]

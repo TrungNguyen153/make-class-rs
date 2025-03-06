@@ -11,8 +11,11 @@ pub enum Value {
     F32(f32),
     F64(f64),
     Bool(bool),
+    Vec2(f32, f32),
+    Vec3(f32, f32, f32),
+    Vec4(f32, f32, f32, f32),
     String(String),
-    Ptr(usize),
+    HexAddress(usize),
 }
 
 impl std::fmt::Display for Value {
@@ -26,11 +29,14 @@ impl std::fmt::Display for Value {
             Value::I16(v) => write!(f, "{v}"),
             Value::I32(v) => write!(f, "{v}"),
             Value::I64(v) => write!(f, "{v}"),
-            Value::F32(v) => write!(f, "{v:.2}"),
-            Value::F64(v) => write!(f, "{v:.2}"),
+            Value::F32(v) => write!(f, "{v}"),
+            Value::F64(v) => write!(f, "{v}"),
             Value::Bool(v) => write!(f, "{}", if *v { "true" } else { "false" }),
+            Value::Vec2(x, y) => write!(f, "({x}, {y})"),
+            Value::Vec3(x, y, z) => write!(f, "({x}, {y}, {z})"),
+            Value::Vec4(x, y, z, w) => write!(f, "({x}, {y}, {z}, {w})"),
             Value::String(v) => write!(f, "\"{v}\""),
-            Value::Ptr(v) => write!(f, "{v:#X}"),
+            Value::HexAddress(v) => write!(f, "{v:#X}"),
         }
     }
 }
