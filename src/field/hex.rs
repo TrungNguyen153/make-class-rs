@@ -11,6 +11,11 @@ pub struct HexField<const N: usize> {
 }
 
 impl<const N: usize> HexField<N> {
+    pub fn new() -> Self {
+        Self {
+            id: FieldId::next_id(),
+        }
+    }
     fn byte_view(&self, ctx: &mut InspectorContext, job: &mut LayoutJob, buf: &[u8; N]) {
         for (i, b) in buf.iter().enumerate() {
             let b = *b;

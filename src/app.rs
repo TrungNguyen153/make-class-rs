@@ -1,4 +1,4 @@
-use eframe::egui::Color32;
+use eframe::egui::{Color32, Theme};
 
 use crate::{
     global_state::global_state,
@@ -20,6 +20,7 @@ impl MakeClassApp {
 }
 impl eframe::App for MakeClassApp {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
+        ctx.set_theme(Theme::Dark);
         self.class_list_panel.show(ctx);
         if let Some(r) = self.inspector.show(ctx) {
             //

@@ -1,5 +1,5 @@
 #![feature(let_chains)]
-use eframe::egui::{Key, Modifiers, Vec2};
+use eframe::egui::{Key, Modifiers, Vec2, Visuals};
 
 use self::{
     app::MakeClassApp,
@@ -23,6 +23,7 @@ mod inspection;
 pub mod memory;
 mod styling;
 mod ui;
+pub mod value;
 
 pub fn run_app() {
     let sub = tracing_subscriber::fmt()
@@ -42,7 +43,7 @@ pub fn run_app() {
     let r = eframe::run_native(
         obfstr!("MakeClass"),
         eframe::NativeOptions::default(),
-        Box::new(|_cc| {
+        Box::new(|cc| {
             // load fonts
             let mut hotkeys = HotkeyManager::default();
             hotkeys.register(
@@ -57,8 +58,9 @@ pub fn run_app() {
                 ..Default::default()
             });
 
-            _cc.egui_ctx.style_mut(|s| {
-                s.spacing.item_spacing = Vec2::new(8., 8.);
+            cc.egui_ctx.style_mut(|s| {
+                s.spacing.item_spacing = Vec2::new(4., 4.);
+                s.visuals = Visuals::dark();
             });
             Ok(Box::new(MakeClassApp::new()))
         }),

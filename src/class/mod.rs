@@ -1,8 +1,11 @@
 pub mod class_list;
 
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 
-use crate::{address::AddressString, field::Field};
+use crate::{
+    address::AddressString,
+    field::{Field, float::FloatField, hex::HexField},
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
 pub struct ClassId(usize);
@@ -20,14 +23,21 @@ pub struct Class {
     pub fields: Vec<Box<dyn Field>>,
 }
 
+fn create_dummy_fields() -> Vec<Box<dyn Field>> {
+    vec![
+        HexField::<8>::new().boxed(),
+        HexField::<8>::new().boxed(),
+        FloatField::<4>::new("Float4").boxed(),
+    ]
+}
+
 impl Class {
     pub fn new(id: impl Into<ClassId>, name: impl Into<String>) -> Self {
         Self {
             id: id.into(),
             name: name.into(),
             address: RefCell::new(0.into()),
-            // TODO default showup some hex bytes
-            fields: vec![],
+            fields: create_dummy_fields(),
         }
     }
 
