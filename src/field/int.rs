@@ -31,7 +31,7 @@ impl<const N: usize> IntField<N> {
         Self {
             id: FieldId::next_id(),
             signed: true,
-            state: FieldState::new(format!("i{}", N * 8)),
+            state: FieldState::new(format!("i{N}")),
         }
     }
 
@@ -39,7 +39,7 @@ impl<const N: usize> IntField<N> {
         Self {
             id: FieldId::next_id(),
             signed: true,
-            state: FieldState::new(format!("u{}", N * 8)),
+            state: FieldState::new(format!("u{N}",)),
         }
     }
 }
@@ -58,7 +58,7 @@ impl<const N: usize> Field for IntField<N> {
     }
 
     fn field_size(&self) -> usize {
-        N
+        N / 8
     }
 
     fn draw(
@@ -66,7 +66,7 @@ impl<const N: usize> Field for IntField<N> {
         ui: &mut eframe::egui::Ui,
         ctx: &mut crate::inspection::InspectorContext,
     ) -> Option<super::FieldResponse> {
-        let mut buf = [0; N];
+        let mut buf = vec![0; N / 8];
         let address = ctx.address + ctx.offset;
         global_state().memory.read_buf(address, &mut buf);
 
@@ -97,14 +97,14 @@ impl<const N: usize> Field for IntField<N> {
                 ctx,
                 &self.state,
                 || match N {
-                    1 => {
+                    8 => {
                         if self.signed {
                             (Value::I8(buf[0] as i8), Color32::WHITE)
                         } else {
                             (Value::U8(buf[0]), Color32::WHITE)
                         }
                     }
-                    2 => {
+                    16 => {
                         if self.signed {
                             (
                                 Value::I16(i16::from_ne_bytes(buf[..].try_into().unwrap())),
@@ -117,8 +117,7 @@ impl<const N: usize> Field for IntField<N> {
                             )
                         }
                     }
-
-                    4 => {
+                    32 => {
                         if self.signed {
                             (
                                 Value::I32(i32::from_ne_bytes(buf[..].try_into().unwrap())),
@@ -131,8 +130,7 @@ impl<const N: usize> Field for IntField<N> {
                             )
                         }
                     }
-
-                    8 => {
+                    64 => {
                         if self.signed {
                             (
                                 Value::I64(i64::from_ne_bytes(buf[..].try_into().unwrap())),

@@ -2,9 +2,19 @@ use eframe::egui::{
     self, Button, Color32, Context, CornerRadius, Frame, Margin, RichText, TopBottomPanel,
 };
 
-use crate::field::{Field, boolean::BoolField, int::IntField};
+use crate::field::{
+    Field,
+    boolean::BoolField,
+    class_pointer::ClassPointerField,
+    float::FloatField,
+    hex::HexField,
+    int::IntField,
+    string::{PointerTextField, TextField},
+    vector::VectorField,
+};
 
 pub enum ToolBarResponse {
+    #[allow(unused)]
     ChangeFieldKind(Box<dyn Field>),
 }
 
@@ -67,56 +77,98 @@ impl ToolBarPanel {
     }
 
     fn field_change_group(&self, ui: &mut egui::Ui, response: &mut Option<ToolBarResponse>) {
-        ui.vertical(|ui| {
-            if ui
-                .add(
-                    Button::new(RichText::new("BOOL").color(Color32::GOLD))
-                        .fill(Color32::TRANSPARENT),
-                )
-                .clicked()
-            {
-                response.replace(ToolBarResponse::ChangeFieldKind(
-                    BoolField::default().boxed(),
-                ));
-            }
-        });
-
         macro_rules! group_type {
-            ($([$display:literal, $text_color:ty, $background:ty, $response_type:ty]),* $(,)?) => {
-                ui.vertical(|ui| {
-                    $(
-                        if ui
-                            .add(
-                                Button::new(RichText::new(obfstr!($display)).color($text_color))
-                                .fill($background),
-                            )
-                                .clicked()
-                        {
-                            response.replace(ToolBarResponse::ChangeFieldKind(
-                                    $response_type.boxed(),
-                            ));
-                        }
-                    )*
-                });
+            ($ui:ident, $([$display:ident, $text_color:expr, $background:expr, $response_type:expr]),* $(,)?) => {
+                $(
+                    if $ui
+                    .add(
+                        Button::new(RichText::new(obfstr!(stringify!($display))).color($text_color))
+                        .fill($background),
+                    )
+                    .clicked()
+                    {
+                        response.replace(ToolBarResponse::ChangeFieldKind(
+                                ($response_type)().boxed()
+                        ));
+                    }
+                )*
             };
         }
 
         ui.vertical(|ui| {
-            if ui
-                .add(
-                    Button::new(RichText::new("U8").color(Color32::GREEN))
-                        .fill(Color32::TRANSPARENT),
-                )
-                .clicked()
-            {
-                response.replace(ToolBarResponse::ChangeFieldKind(
-                    IntField::<1>::unsigned_default().boxed(),
-                ));
+            group_type! {
+                ui,
+                [hex8, Color32::GREEN, Color32::TRANSPARENT, || HexField::<8>::default()],
+                [hex16, Color32::GREEN, Color32::TRANSPARENT, || HexField::<16>::default()],
+                [hex32, Color32::GREEN, Color32::TRANSPARENT, || HexField::<32>::default()],
+                [hex64, Color32::GREEN, Color32::TRANSPARENT, || HexField::<64>::default()],
             }
         });
 
         group_type! {
-            ["U8", Color32::GREEN, Color32::TRANSPARENT, IntField::<1>::unsigned_default()]
+            ui,
+            [bool, Color32::GOLD, Color32::TRANSPARENT, || BoolField::default()],
         }
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [u8, Color32::GREEN, Color32::TRANSPARENT, || IntField::<8>::unsigned_default()],
+                [u16, Color32::GREEN, Color32::TRANSPARENT, || IntField::<16>::unsigned_default()],
+                [u32, Color32::GREEN, Color32::TRANSPARENT, || IntField::<32>::unsigned_default()],
+                [u64, Color32::GREEN, Color32::TRANSPARENT, || IntField::<64>::unsigned_default()],
+            }
+        });
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [i8, Color32::LIGHT_GREEN, Color32::TRANSPARENT, || IntField::<8>::signed_default()],
+                [i16, Color32::LIGHT_GREEN, Color32::TRANSPARENT, || IntField::<16>::signed_default()],
+                [i32, Color32::LIGHT_GREEN, Color32::TRANSPARENT, || IntField::<32>::signed_default()],
+                [i64, Color32::LIGHT_GREEN, Color32::TRANSPARENT, || IntField::<64>::signed_default()],
+            }
+        });
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [f32, Color32::GRAY, Color32::TRANSPARENT, || FloatField::<4>::default()],
+                [f64, Color32::GRAY, Color32::TRANSPARENT, || FloatField::<8>::default()],
+            }
+        });
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [vec2, Color32::GREEN, Color32::TRANSPARENT, || VectorField::<2>::default()],
+                [vec3, Color32::GREEN, Color32::TRANSPARENT, || VectorField::<3>::default()],
+                [vec4, Color32::GREEN, Color32::TRANSPARENT, || VectorField::<4>::default()],
+            }
+        });
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [utf8, Color32::GREEN, Color32::TRANSPARENT, || TextField::<8, 16>::default()],
+                [utf16, Color32::GREEN, Color32::TRANSPARENT, || TextField::<16, 16>::default()],
+            }
+        });
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [ptrUtf8, Color32::GREEN, Color32::TRANSPARENT, || PointerTextField::<8, 16>::default()],
+                [ptrUtf16, Color32::GREEN, Color32::TRANSPARENT, || PointerTextField::<16, 16>::default()],
+            }
+        });
+
+        ui.vertical(|ui| {
+            group_type! {
+                ui,
+                [clsInst, Color32::GREEN, Color32::TRANSPARENT, || ClassPointerField::default()],
+                [clsPtr, Color32::GREEN, Color32::TRANSPARENT, || ClassPointerField::default()],
+            }
+        });
     }
 }
