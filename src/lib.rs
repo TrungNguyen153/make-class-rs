@@ -1,5 +1,5 @@
 #![feature(let_chains)]
-use eframe::egui::{Key, Modifiers, Vec2, Visuals};
+use eframe::egui::{FontData, FontDefinitions, FontFamily, Key, Modifiers, Vec2, Visuals};
 
 use self::{
     app::MakeClassApp,
@@ -62,6 +62,20 @@ pub fn run_app() {
                 s.spacing.item_spacing = Vec2::new(4., 4.);
                 s.visuals = Visuals::dark();
             });
+
+            cc.egui_ctx.set_pixels_per_point(1.);
+
+            let mut fonts = FontDefinitions::default();
+            fonts.font_data.insert(
+                "roboto-mono".into(),
+                FontData::from_static(include_bytes!("../fonts/RobotoMono-Regular.ttf")).into(),
+            );
+            fonts
+                .families
+                .get_mut(&FontFamily::Monospace)
+                .unwrap()
+                .insert(0, "roboto-mono".into());
+            cc.egui_ctx.set_fonts(fonts);
             Ok(Box::new(MakeClassApp::new()))
         }),
     );
