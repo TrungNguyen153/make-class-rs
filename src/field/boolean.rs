@@ -4,21 +4,21 @@ use crate::{global_state::global_state, value::Value};
 
 use super::{Field, FieldId, FieldState, display_field_value};
 
-pub struct FloatField<const N: usize> {
+pub struct BoolField {
     id: FieldId,
     state: FieldState,
 }
 
-impl<const N: usize> Default for FloatField<N> {
+impl Default for BoolField {
     fn default() -> Self {
         Self {
             id: FieldId::next_id(),
-            state: FieldState::new(format!("float{N}")),
+            state: FieldState::new(obfstr!("bool")),
         }
     }
 }
 
-impl<const N: usize> FloatField<N> {
+impl BoolField {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
             id: FieldId::next_id(),
@@ -27,7 +27,7 @@ impl<const N: usize> FloatField<N> {
     }
 }
 
-impl<const N: usize> Field for FloatField<N> {
+impl Field for BoolField {
     fn id(&self) -> FieldId {
         self.id
     }
@@ -41,7 +41,7 @@ impl<const N: usize> Field for FloatField<N> {
     }
 
     fn field_size(&self) -> usize {
-        N
+        1
     }
 
     fn draw(
@@ -49,47 +49,53 @@ impl<const N: usize> Field for FloatField<N> {
         ui: &mut eframe::egui::Ui,
         ctx: &mut crate::inspection::InspectorContext,
     ) -> Option<super::FieldResponse> {
-        let mut buf = [0; N];
+        let mut val = 0u8;
         let address = ctx.address + ctx.offset;
-        global_state().memory.read_buf(address, &mut buf);
 
+        global_state()
+            .memory
+            .read_buf(address, std::slice::from_mut(&mut val));
+
+        let valid_bool = val == 0 || val == 1;
         let mut field_response = None;
 
         ui.horizontal(|ui| {
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
-
             let r = ui.add(Label::new(job).sense(Sense::click()));
             if r.clicked() {
                 ctx.toggle_select(self.id);
             }
 
-            self.display_field_name(ui, ctx, &self.state, Color32::LIGHT_RED);
+            self.display_field_name(ui, ctx, &self.state, Color32::GOLD);
+
             display_field_value(
                 self,
                 ui,
                 ctx,
                 &self.state,
-                || (Value::F32(3.3), Color32::WHITE),
-                |buf| match N {
-                    4 => {
-                        let v = buf.parse::<f32>()?;
-                        info!("{}{v}", obfstr!("Not implement write for: "));
-                        // TODO write
+                || {
+                    if !valid_bool {
+                        (Value::U8(val), Color32::RED)
+                    } else {
+                        (Value::Bool(val == 1), Color32::GOLD)
+                    }
+                },
+                |buf| match buf.to_lowercase().as_str() {
+                    "1" | "true" | "yes" | "on" => {
+                        // TODO write 1 into it
                         Ok(())
                     }
-                    8 => {
-                        let v = buf.parse::<f64>()?;
-                        info!("{}{v}", obfstr!("Not implement write for: "));
-                        // TODO write
+                    "0" | "false" | "no" | "off" => {
+                        // TODO write 0 into it
                         Ok(())
                     }
-                    _ => eyre::bail!("Unsupport Float size: {N}"),
+                    _ => eyre::bail!("Unsupport boolean: {buf}"),
                 },
             );
         });
 
-        ctx.offset += N;
+        ctx.offset += self.field_size();
         field_response
     }
 }

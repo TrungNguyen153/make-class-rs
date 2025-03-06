@@ -10,6 +10,12 @@ pub struct HexField<const N: usize> {
     id: FieldId,
 }
 
+impl<const N: usize> Default for HexField<N> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<const N: usize> HexField<N> {
     pub fn new() -> Self {
         Self {

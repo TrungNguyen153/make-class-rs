@@ -4,7 +4,7 @@ use std::cell::RefCell;
 
 use crate::{
     address::AddressString,
-    field::{Field, float::FloatField, hex::HexField},
+    field::{Field, boolean::BoolField, float::FloatField, hex::HexField},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
@@ -25,9 +25,10 @@ pub struct Class {
 
 fn create_dummy_fields() -> Vec<Box<dyn Field>> {
     vec![
-        HexField::<8>::new().boxed(),
-        HexField::<8>::new().boxed(),
-        FloatField::<4>::new("Float4").boxed(),
+        HexField::<8>::default().boxed(),
+        HexField::<8>::default().boxed(),
+        FloatField::<4>::default().boxed(),
+        BoolField::default().boxed(),
     ]
 }
 

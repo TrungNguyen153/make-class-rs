@@ -1,16 +1,17 @@
+pub mod boolean;
 pub mod float;
 pub mod hex;
 
 use std::{cell::RefCell, sync::atomic::AtomicU64};
 
 use eframe::egui::{
-    self, Color32, FontSelection, Key, Label, Modifiers, Sense, Stroke, TextEdit, text::LayoutJob,
+    self, Color32, FontSelection, Key, Label, Modifiers, Sense, TextEdit, text::LayoutJob,
 };
 
 use crate::{
     global_state::global_state,
     inspection::InspectorContext,
-    styling::{create_text_format, get_current_font_size_hex_view, want_display_offset_prelude},
+    styling::{create_text_format, create_text_offset_format, get_current_font_size_hex_view},
     value::Value,
 };
 
@@ -95,47 +96,39 @@ pub trait Field {
         job: &mut LayoutJob,
     ) {
         let egui_ctx = ui.ctx();
-        job.append(
-            &if want_display_offset_prelude() {
-                format!("{:04X}", ctx.offset)
-            } else {
-                format!("{:04}", ctx.offset)
-            },
-            0.,
+        job.append(&create_text_offset_format(ctx.offset), 0., {
+            let mut tf = create_text_format(ctx.is_selected(self.id()), Color32::KHAKI);
+            // Highlight unaligned fields
+            // if ctx.offset % 8 != 0 {
+            //     tf.underline = Stroke::new(1., Color32::RED);
+            // }
+
+            // Ctrl C
+            // copy offset
+            if egui_ctx
+                .input(|i| i.key_pressed(Key::C) && i.modifiers.matches_logically(Modifiers::CTRL))
+                && ctx.is_selected(self.id())
             {
-                let mut tf = create_text_format(ctx.is_selected(self.id()), Color32::KHAKI);
-                // Highlight unaligned fields
-                if ctx.offset % 8 != 0 {
-                    tf.underline = Stroke::new(1., Color32::RED);
-                }
+                egui_ctx.copy_text(format!("{:X}", ctx.address + ctx.offset));
+            }
 
-                // Ctrl C
-                // copy offset
-                if egui_ctx.input(|i| {
-                    i.key_pressed(Key::C) && i.modifiers.matches_logically(Modifiers::CTRL)
-                }) && ctx.is_selected(self.id())
-                {
-                    egui_ctx.copy_text(format!("{:X}", ctx.address + ctx.offset));
-                }
+            // Ctrl+Shift C
+            // copy 8 bytes at address
+            if egui_ctx.input(|i| {
+                i.key_pressed(Key::C)
+                    && i.modifiers
+                        .matches_logically(Modifiers::CTRL | Modifiers::SHIFT)
+            }) && ctx.is_selected(self.id())
+            {
+                let mut buf = [0; 8];
+                global_state()
+                    .memory
+                    .read_buf(ctx.address + ctx.offset, &mut buf[..]);
+                egui_ctx.copy_text(format!("{:X}", usize::from_ne_bytes(buf)));
+            }
 
-                // Ctrl+Shift C
-                // copy 8 bytes at address
-                if egui_ctx.input(|i| {
-                    i.key_pressed(Key::C)
-                        && i.modifiers
-                            .matches_logically(Modifiers::CTRL | Modifiers::SHIFT)
-                }) && ctx.is_selected(self.id())
-                {
-                    let mut buf = [0; 8];
-                    global_state()
-                        .memory
-                        .read_buf(ctx.address + ctx.offset, &mut buf[..]);
-                    egui_ctx.copy_text(format!("{:X}", usize::from_ne_bytes(buf)));
-                }
-
-                tf
-            },
-        );
+            tf
+        });
         job.append(
             &format!("{:012X}", ctx.address + ctx.offset),
             8.,
@@ -219,8 +212,7 @@ pub fn display_field_value(
     ui: &mut egui::Ui,
     ctx: &mut InspectorContext,
     state: &FieldState,
-    color: Color32,
-    display_value_fn: impl FnOnce() -> Value,
+    display_value_fn: impl FnOnce() -> (Value, Color32),
     writer_new_value_fn: impl FnOnce(&str) -> eyre::Result<()>,
 ) {
     let field_address = ctx.address + ctx.offset;
@@ -275,7 +267,7 @@ pub fn display_field_value(
 
     let mut job = LayoutJob::default();
 
-    let v = display_value_fn();
+    let (v, color) = display_value_fn();
 
     job.append(
         &v.to_string(),
