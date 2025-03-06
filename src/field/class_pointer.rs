@@ -88,7 +88,10 @@ impl ClassPointerField {
         );
 
         let r = ui.add(Label::new(job).sense(Sense::click()));
-        let popup_select_exist_class_id = Id::new(self.id);
+        let popup_select_exist_class_id = Id::new(format!(
+            "{:?}{}{address}popup_select_exist_class",
+            self.id, ctx.inspector_level,
+        ));
         if r.secondary_clicked() {
             ui.memory_mut(|m| m.toggle_popup(popup_select_exist_class_id));
         } else if r.clicked() {

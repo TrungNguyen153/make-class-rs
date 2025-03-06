@@ -97,9 +97,6 @@ impl ClassInstanceField {
                 ui.set_width(80.);
                 ui.vertical_centered_justified(|ui| {
                     for cl in ctx.class_list.classes() {
-                        if cl.id() == ctx.class_container {
-                            continue;
-                        }
                         if ui.button(&cl.name).clicked() {
                             self.class_id.set(cl.id());
                             ui.memory_mut(|m| m.toggle_popup(popup_select_exist_class_id));
