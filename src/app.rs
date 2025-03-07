@@ -8,6 +8,7 @@ use crate::{
         inspector_panel::InspectorPanel,
         toolbar_panel::{ToolBarPanel, ToolBarResponse},
     },
+    utils::offset_align_to,
 };
 
 pub struct MakeClassApp {
@@ -161,7 +162,7 @@ impl MakeClassApp {
 
                 // start pos 1
                 // pos 0 alway align
-                let mut iter_pos = 1;
+                let mut iter_pos = 0;
                 let mut offset = 0;
                 while iter_pos < class.field_len() - 1 {
                     let field = &class.fields[iter_pos];
@@ -172,6 +173,7 @@ impl MakeClassApp {
                     // next field is named
                     // cant add bytes
                     if next_field.had_name() {
+                        info!("[{iter_pos}] next field named");
                         // move up 2
                         iter_pos += 2;
                         offset += field.field_size() + next_field.field_size();
@@ -180,29 +182,45 @@ impl MakeClassApp {
 
                     // already align
                     if offset % 4 == 0 {
+                        info!("[{iter_pos}] already align");
                         iter_pos += 1;
                         offset += field.field_size();
                         continue;
                     }
 
-                    let missing = offset % 4;
+                    let missing = offset_align_to(offset, 4) - offset;
+
                     let next_field_size = next_field.field_size();
 
-                    if missing <= next_field_size {
+                    if missing != 0 && missing < next_field_size {
                         // we break next field for add align
                         // insert N bytes
                         // cut out N bytes
                         let steal_size = next_field_size - missing;
+                        info!(
+                            "[{iter_pos}] progressing: offset={offset} missing={missing} steal={steal_size}"
+                        );
                         let added_index = class.insert_bytes(missing, field_id).unwrap();
                         offset += missing;
                         iter_pos += added_index;
                         class.remove_field_by_id(next_field_id).unwrap();
                         class.add_bytes(steal_size, field_id).unwrap();
                     } else {
+                        if missing != 0 {
+                            info!("Next field not enough byte");
+                        }
+                        info!("Go next");
                         // go next
                         iter_pos += 1;
                         offset += field.field_size();
                     }
+                }
+
+                // group field
+                iter_pos = 0;
+                while iter_pos < class.field_len() {
+                    class.merge_hex_field(iter_pos);
+                    iter_pos += 1;
                 }
             }
             ToolBarResponse::DeleteField => {

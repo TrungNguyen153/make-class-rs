@@ -23,6 +23,7 @@ mod inspection;
 pub mod memory;
 mod styling;
 mod ui;
+mod utils;
 pub mod value;
 
 pub fn run_app() {
