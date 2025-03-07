@@ -71,9 +71,17 @@ impl ClassList {
         None
     }
 
+    /// create class with dummy fields
     pub fn add_class(&mut self, name: impl Into<String>) -> ClassId {
         let id = fastrand::usize(..);
         self.classes.push(Class::new(id, name));
+        id.into()
+    }
+
+    /// Create class without any field
+    pub fn add_empty_class(&mut self, name: impl Into<String>) -> ClassId {
+        let id = fastrand::usize(..);
+        self.classes.push(Class::empty(id, name));
         id.into()
     }
 

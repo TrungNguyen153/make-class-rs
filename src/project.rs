@@ -49,6 +49,7 @@ impl Generator for ProjectDataGenerator {
     }
 
     fn add_field(&mut self, name: &str, tag: FieldTag, field_size: usize, metadata: &str) {
+        info!("Add field: {tag:?} -> {name}");
         self.classes.last_mut().unwrap().fields.push(FieldData {
             name: name.to_owned(),
             offset: self.offset,
@@ -98,29 +99,22 @@ impl ProjectData {
 
         self.classes
             .iter()
-            .for_each(|cl| _ = list.add_class(cl.name.to_string()));
+            .for_each(|cl| _ = list.add_empty_class(cl.name.to_string()));
         self.classes.into_iter().for_each(|mut dataclass| {
             dataclass.fields.sort_by_key(|f| f.offset);
 
             let cid = list.get_class_by_name(&dataclass.name).unwrap().id();
-            let mut current_offset = 0;
 
             for FieldData {
                 name,
-                offset: field_offset,
                 tag,
                 metadata,
-                field_size,
+                ..
             } in dataclass.fields
             {
-                let class = list.get_class_mut(cid).unwrap();
-                if field_offset > current_offset {
-                    class
-                        .fields
-                        .extend(allocate_padding(field_offset - current_offset));
-                }
+                info!("Load field: {tag:?} -> {name}");
 
-                match tag {
+                let field = match tag {
                     FieldTag::Bool => BoolField::new(name).boxed(),
                     FieldTag::ClassInstance => {
                         let c = ClassInstanceField::new_with_class_id(
@@ -175,7 +169,7 @@ impl ProjectData {
                     FieldTag::Vec4 => VectorField::<4>::new(name).boxed(),
                 };
 
-                current_offset += field_offset + field_size;
+                list.get_class_mut(cid).unwrap().add_field(field);
             }
         });
 
