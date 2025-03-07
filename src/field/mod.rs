@@ -1,6 +1,7 @@
 pub mod boolean;
 pub mod class_instance;
 pub mod class_pointer;
+pub mod field_tag;
 pub mod float;
 pub mod hex;
 pub mod int;
@@ -15,13 +16,14 @@ use eframe::egui::{
 };
 
 use crate::{
+    generator::Generator,
     global_state::global_state,
     inspection::InspectorContext,
     styling::{create_text_format, create_text_offset_format, get_current_font_size_hex_view},
     value::Value,
 };
 
-use self::hex::HexField;
+use self::{field_tag::FieldTag, hex::HexField};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash)]
 pub struct FieldId(u64);
@@ -83,6 +85,9 @@ pub enum FieldResponse {
 
 pub trait Field {
     fn id(&self) -> FieldId;
+
+    fn field_tag(&self) -> FieldTag;
+    fn codegen(&self, generator: &mut dyn Generator);
 
     fn field_state(&self) -> Option<&FieldState>;
 

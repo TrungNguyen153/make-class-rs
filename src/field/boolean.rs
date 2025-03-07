@@ -2,7 +2,7 @@ use eframe::egui::{Color32, Label, Sense, text::LayoutJob};
 
 use crate::{global_state::global_state, value::Value};
 
-use super::{Field, FieldId, FieldState, display_field_value};
+use super::{Field, FieldId, FieldState, display_field_value, field_tag::FieldTag};
 
 pub struct BoolField {
     id: FieldId,
@@ -97,5 +97,18 @@ impl Field for BoolField {
 
         ctx.offset += self.field_size();
         field_response
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        FieldTag::Bool
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            "",
+        );
     }
 }

@@ -2,7 +2,7 @@ use eframe::egui::{Color32, Label, Sense, text::LayoutJob};
 
 use crate::{global_state::global_state, value::Value};
 
-use super::{Field, FieldId, FieldState, display_field_value};
+use super::{Field, FieldId, FieldState, display_field_value, field_tag::FieldTag};
 
 pub struct IntField<const N: usize> {
     id: FieldId,
@@ -47,6 +47,29 @@ impl<const N: usize> IntField<N> {
 impl<const N: usize> Field for IntField<N> {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        match (N, self.signed) {
+            (8, true) => FieldTag::I8,
+            (16, true) => FieldTag::I16,
+            (32, true) => FieldTag::I32,
+            (64, true) => FieldTag::I64,
+
+            (8, false) => FieldTag::U8,
+            (16, false) => FieldTag::U16,
+            (32, false) => FieldTag::U32,
+            _ => FieldTag::U64,
+        }
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            "",
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {

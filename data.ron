@@ -1,0 +1,1 @@
+(classes:[(name:"MyClass",fields:[(name:"",offset:0,field_size:1,tag:Hex8,metadata:""),(name:"",offset:1,field_size:2,tag:Hex16,metadata:""),(name:"",offset:3,field_size:4,tag:Hex32,metadata:""),(name:"",offset:7,field_size:8,tag:Hex64,metadata:"")])])

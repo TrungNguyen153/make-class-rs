@@ -10,7 +10,7 @@ use crate::{
     styling::create_text_format, value::Value,
 };
 
-use super::{Field, FieldId, FieldResponse, FieldState, display_field_value};
+use super::{Field, FieldId, FieldResponse, FieldState, display_field_value, field_tag::FieldTag};
 
 pub struct ClassPointerField {
     id: FieldId,
@@ -157,6 +157,23 @@ impl ClassPointerField {
 impl Field for ClassPointerField {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        FieldTag::ClassPointer
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        let class_name = global_state()
+            .class_list
+            .get_class(self.class_id.get())
+            .map(|c| c.name.clone());
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            &class_name.unwrap_or_default(),
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {

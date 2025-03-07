@@ -8,7 +8,7 @@ use eframe::egui::{Color32, Label, Sense, text::LayoutJob};
 
 use crate::{global_state::global_state, value::Value};
 
-use super::{Field, FieldId, FieldState, display_field_value};
+use super::{Field, FieldId, FieldState, display_field_value, field_tag::FieldTag};
 
 pub struct TextField<const TEXT_KIND: usize> {
     id: FieldId,
@@ -32,11 +32,34 @@ impl<const TEXT_KIND: usize> TextField<TEXT_KIND> {
     pub fn change_char_count(&self, new: usize) {
         self.char_count.set(new);
     }
+
+    pub fn new(name: String) -> Self {
+        let s = Self::default();
+        s.set_name(name);
+        s
+    }
 }
 
 impl<const TEXT_KIND: usize> Field for TextField<TEXT_KIND> {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        if TEXT_KIND == 8 {
+            FieldTag::Utf8
+        } else {
+            FieldTag::Utf16
+        }
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            &format!("{}", self.char_count.get()),
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {
@@ -135,11 +158,34 @@ impl<const TEXT_KIND: usize> PointerTextField<TEXT_KIND> {
     pub fn change_character_count(&self, new: usize) {
         self.char_count.set(new);
     }
+
+    pub fn new(name: String) -> Self {
+        let s = Self::default();
+        s.set_name(name);
+        s
+    }
 }
 
 impl<const TEXT_KIND: usize> Field for PointerTextField<TEXT_KIND> {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        if TEXT_KIND == 8 {
+            FieldTag::PtrUtf8
+        } else {
+            FieldTag::PtrUtf16
+        }
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            &format!("{}", self.char_count.get()),
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {

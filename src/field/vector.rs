@@ -2,7 +2,7 @@ use eframe::egui::{Color32, Label, Sense, text::LayoutJob};
 
 use crate::{global_state::global_state, value::Value};
 
-use super::{Field, FieldId, FieldState, display_field_value};
+use super::{Field, FieldId, FieldState, display_field_value, field_tag::FieldTag};
 
 pub struct VectorField<const N: usize> {
     id: FieldId,
@@ -30,6 +30,23 @@ impl<const N: usize> VectorField<N> {
 impl<const N: usize> Field for VectorField<N> {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        match N {
+            2 => FieldTag::Vec2,
+            3 => FieldTag::Vec3,
+            _ => FieldTag::Vec4,
+        }
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            "",
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {

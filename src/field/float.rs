@@ -2,7 +2,7 @@ use eframe::egui::{Color32, Label, Sense, text::LayoutJob};
 
 use crate::{global_state::global_state, value::Value};
 
-use super::{Field, FieldId, FieldState, display_field_value};
+use super::{Field, FieldId, FieldState, display_field_value, field_tag::FieldTag};
 
 pub struct FloatField<const N: usize> {
     id: FieldId,
@@ -30,6 +30,23 @@ impl<const N: usize> FloatField<N> {
 impl<const N: usize> Field for FloatField<N> {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        if N == 32 {
+            FieldTag::Float32
+        } else {
+            FieldTag::Float64
+        }
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            "",
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {

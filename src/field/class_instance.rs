@@ -10,7 +10,7 @@ use crate::{
     styling::create_text_format,
 };
 
-use super::{Field, FieldId, FieldResponse, FieldState};
+use super::{Field, FieldId, FieldResponse, FieldState, field_tag::FieldTag};
 
 pub struct ClassInstanceField {
     id: FieldId,
@@ -149,6 +149,23 @@ impl ClassInstanceField {
 impl Field for ClassInstanceField {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        FieldTag::ClassInstance
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        let class_name = global_state()
+            .class_list
+            .get_class(self.class_id.get())
+            .map(|c| c.name.clone());
+        generator.add_field(
+            &self.state.name_state.borrow().name,
+            self.field_tag(),
+            self.field_size(),
+            &class_name.unwrap_or_default(),
+        );
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {

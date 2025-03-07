@@ -3,8 +3,9 @@ use eframe::egui::{FontData, FontDefinitions, FontFamily, Key, Modifiers, Vec2, 
 
 use self::{
     app::MakeClassApp,
-    global_state::{GlobalState, set_global_state, unset_global_state},
+    global_state::{GlobalState, global_state, set_global_state, unset_global_state},
     hotkeys::HotkeyManager,
+    project::ProjectData,
 };
 
 #[macro_use]
@@ -17,10 +18,12 @@ pub mod address_parser;
 mod app;
 pub mod class;
 pub mod field;
+pub mod generator;
 mod global_state;
 mod hotkeys;
 mod inspection;
 pub mod memory;
+mod project;
 mod styling;
 mod ui;
 mod utils;
@@ -56,6 +59,7 @@ pub fn run_app() {
             // load global
             set_global_state(GlobalState {
                 hotkeys,
+                class_list: ProjectData::load().to_class_list(),
                 ..Default::default()
             });
 
@@ -80,6 +84,8 @@ pub fn run_app() {
             Ok(Box::new(MakeClassApp::new()))
         }),
     );
+
+    ProjectData::store(global_state().class_list.classes()).save();
     // cleanup global;
     unset_global_state();
     r.unwrap();

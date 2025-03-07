@@ -11,23 +11,32 @@ pub struct ClassList {
 
 impl Default for ClassList {
     fn default() -> Self {
-        let c1 = Class::new(0, "Dummy");
-        let mut c2 = Class::new(1, "Dummy2");
-        c2.add_field(ClassInstanceField::new_with_class_id(0.into()).boxed());
-        c2.add_field(HexField::<8>::default().boxed());
-        c2.add_field(HexField::<8>::default().boxed());
-        let mut c3 = Class::new(2, "Dummy3");
-        c3.add_field(ClassPointerField::new_with_class_id(1.into()).boxed());
-        c3.add_field(HexField::<8>::default().boxed());
-        c3.add_field(HexField::<16>::default().boxed());
+        // let c1 = Class::new(0, "Dummy");
+        // let mut c2 = Class::new(1, "Dummy2");
+        // c2.add_field(ClassInstanceField::new_with_class_id(0.into()).boxed());
+        // c2.add_field(HexField::<8>::default().boxed());
+        // c2.add_field(HexField::<8>::default().boxed());
+        // let mut c3 = Class::new(2, "Dummy3");
+        // c3.add_field(ClassPointerField::new_with_class_id(1.into()).boxed());
+        // c3.add_field(HexField::<8>::default().boxed());
+        // c3.add_field(HexField::<16>::default().boxed());
+        // Self {
+        //     classes: vec![c1, c2, c3],
+        //     selected: Some(0.into()),
+        // }
         Self {
-            classes: vec![c1, c2, c3],
-            selected: Some(0.into()),
+            classes: vec![],
+            selected: None,
         }
     }
 }
 
 impl ClassList {
+    pub const EMPTY: Self = Self {
+        classes: vec![],
+        selected: None,
+    };
+
     pub fn classes(&self) -> &[Class] {
         &self.classes[..]
     }
@@ -80,5 +89,9 @@ impl ClassList {
 
     pub fn get_class_mut(&mut self, class_id: ClassId) -> Option<&mut Class> {
         self.classes.iter_mut().find(|c| c.id() == class_id)
+    }
+
+    pub fn get_class_by_name(&self, name: impl AsRef<str>) -> Option<&Class> {
+        self.classes.iter().find(|c| c.name == name.as_ref())
     }
 }

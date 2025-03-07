@@ -4,7 +4,7 @@ use crate::{
     global_state::global_state, inspection::InspectorContext, styling::create_text_format,
 };
 
-use super::{Field, FieldId, FieldResponse};
+use super::{Field, FieldId, FieldResponse, field_tag::FieldTag};
 
 pub struct HexField<const N: usize> {
     id: FieldId,
@@ -149,6 +149,19 @@ impl<const N: usize> HexField<N> {
 impl<const N: usize> Field for HexField<N> {
     fn id(&self) -> FieldId {
         self.id
+    }
+
+    fn field_tag(&self) -> FieldTag {
+        match N {
+            8 => FieldTag::Hex8,
+            16 => FieldTag::Hex16,
+            32 => FieldTag::Hex32,
+            _ => FieldTag::Hex64,
+        }
+    }
+
+    fn codegen(&self, generator: &mut dyn crate::generator::Generator) {
+        generator.add_field("", self.field_tag(), self.field_size(), "");
     }
 
     fn field_state(&self) -> Option<&super::FieldState> {
