@@ -1,11 +1,12 @@
 use eframe::egui::{Color32, Theme};
 
 use crate::{
-    field::allocate_padding,
+    field::{FieldResponse, allocate_padding},
     global_state::global_state,
     ui::{
         class_list_panel::ClassListPanel,
         inspector_panel::InspectorPanel,
+        modals::{Modals, ModelResponse},
         toolbar_panel::{ToolBarPanel, ToolBarResponse},
     },
     utils::offset_align_to,
@@ -15,6 +16,7 @@ pub struct MakeClassApp {
     class_list_panel: ClassListPanel,
     inspector: InspectorPanel,
     toolbar: ToolBarPanel,
+    modals: Modals,
 }
 
 impl MakeClassApp {
@@ -23,6 +25,7 @@ impl MakeClassApp {
             class_list_panel: ClassListPanel::default(),
             inspector: InspectorPanel::default(),
             toolbar: ToolBarPanel::default(),
+            modals: Modals::default(),
         }
     }
 
@@ -102,7 +105,9 @@ impl MakeClassApp {
                 }
             }
             ToolBarResponse::AddBytes(b) => {
-                global_state().toasts.info(obfstr!("[AddBytes]"));
+                global_state()
+                    .toasts
+                    .info(format!("{} {b} bytes", obfstr!("[AddBytes]")));
                 let Some(selected) = &mut global_state().selection_field else {
                     global_state()
                         .toasts
@@ -127,7 +132,9 @@ impl MakeClassApp {
                 }
             }
             ToolBarResponse::InsertBytes(b) => {
-                global_state().toasts.info(obfstr!("[InsertBytes]"));
+                global_state()
+                    .toasts
+                    .info(format!("{} {b} bytes", obfstr!("[InsertBytes]")));
                 let Some(selected) = &mut global_state().selection_field else {
                     global_state()
                         .toasts
@@ -250,14 +257,31 @@ impl eframe::App for MakeClassApp {
         self.class_list_panel.show(ctx);
         if let Some(r) = self.inspector.show(ctx) {
             match r {
-                crate::field::FieldResponse::AddBytes(b) => {
+                FieldResponse::AddBytes(b) => {
                     toolbar_response.replace(ToolBarResponse::AddBytes(b));
                 }
-                crate::field::FieldResponse::InsertBytes(b) => {
+                FieldResponse::InsertBytes(b) => {
                     toolbar_response.replace(ToolBarResponse::InsertBytes(b));
                 }
-                crate::field::FieldResponse::Delete => {
+                FieldResponse::Delete => {
                     toolbar_response.replace(ToolBarResponse::DeleteField);
+                }
+                FieldResponse::AddNBytes => {
+                    self.modals.open_add_n_bytes = true;
+                }
+                FieldResponse::InsertNBytes => {
+                    self.modals.open_insert_n_bytes = true;
+                }
+            }
+        }
+
+        if let Some(r) = self.modals.show(ctx) {
+            match r {
+                ModelResponse::AcceptAddNBytes(b) => {
+                    toolbar_response.replace(ToolBarResponse::AddBytes(b));
+                }
+                ModelResponse::AcceptInsertNBytes(b) => {
+                    toolbar_response.replace(ToolBarResponse::InsertBytes(b));
                 }
             }
         }

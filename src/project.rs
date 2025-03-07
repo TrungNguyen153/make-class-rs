@@ -49,7 +49,7 @@ impl Generator for ProjectDataGenerator {
     }
 
     fn add_field(&mut self, name: &str, tag: FieldTag, field_size: usize, metadata: &str) {
-        info!("Add field: {tag:?} -> {name}");
+        // info!("Add field: {tag:?} -> {name}");
         self.classes.last_mut().unwrap().fields.push(FieldData {
             name: name.to_owned(),
             offset: self.offset,
@@ -112,7 +112,7 @@ impl ProjectData {
                 ..
             } in dataclass.fields
             {
-                info!("Load field: {tag:?} -> {name}");
+                // info!("Load field: {tag:?} -> {name}");
 
                 let field = match tag {
                     FieldTag::Bool => BoolField::new(name).boxed(),

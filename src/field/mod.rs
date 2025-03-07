@@ -81,6 +81,8 @@ pub enum FieldResponse {
     AddBytes(usize),
     InsertBytes(usize),
     Delete,
+    AddNBytes,
+    InsertNBytes,
 }
 
 pub trait Field {
@@ -286,6 +288,7 @@ pub trait Field {
                     if ui.button(obfstr!("Insert ... Bytes")).clicked() {
                         ui.close_menu();
                         ui.memory_mut(|m| m.toggle_popup(popup_id));
+                        response.replace(FieldResponse::InsertNBytes);
                     }
                 });
 
@@ -300,6 +303,7 @@ pub trait Field {
                     if ui.button(obfstr!("Add ... Bytes")).clicked() {
                         ui.close_menu();
                         ui.memory_mut(|m| m.toggle_popup(popup_id));
+                        response.replace(FieldResponse::AddNBytes);
                     }
                 });
 
