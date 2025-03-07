@@ -36,13 +36,17 @@ impl MakeClassApp {
                 let field_id = selected.field_id;
 
                 let Some(class) = global_state().class_list.get_class_mut(class_id) else {
-                    info!("{}", obfstr!("Why class id not here here ??"));
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[ChangeField] Why class id not here here ??"));
                     global_state().selection_field.take();
                     return;
                 };
 
-                let Some(field_pos) = class.fields.iter().position(|f| f.id() == field_id) else {
-                    info!("{}", obfstr!("Why field id not here here ??"));
+                let Some(field_pos) = class.field_pos(field_id) else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[ChangeField] Why field id not here here ??"));
                     global_state().selection_field.take();
                     return;
                 };
@@ -96,19 +100,105 @@ impl MakeClassApp {
                     }
                 }
             }
+            ToolBarResponse::AddBytes(b) => {
+                global_state().toasts.info(obfstr!("[AddBytes]"));
+                let Some(selected) = &mut global_state().selection_field else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[AddBytes] Why we not have selected field"));
+                    return;
+                };
+
+                let class_id = selected.class_id;
+                let field_id = selected.field_id;
+
+                let Some(class) = global_state().class_list.get_class_mut(class_id) else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[AddBytes] Why class id not here here ??"));
+                    global_state().selection_field.take();
+                    return;
+                };
+
+                let Some(field_pos) = class.field_pos(field_id) else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[AddBytes] Why field id not here here ??"));
+                    global_state().selection_field.take();
+                    return;
+                };
+
+                let padding = allocate_padding(b);
+
+                let field_len = class.field_len();
+
+                if field_pos == field_len {
+                    // field at end
+                    class.extend_fields(padding);
+                } else {
+                    for p in padding {
+                        class.fields.insert(field_pos + 1, p);
+                    }
+                }
+            }
+            ToolBarResponse::InsertBytes(b) => {
+                global_state().toasts.info(obfstr!("[InsertBytes]"));
+                let Some(selected) = &mut global_state().selection_field else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[InsertBytes] Why we not have selected field"));
+                    return;
+                };
+
+                let class_id = selected.class_id;
+                let field_id = selected.field_id;
+
+                let Some(class) = global_state().class_list.get_class_mut(class_id) else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[InsertBytes] Why class id not here here ??"));
+                    global_state().selection_field.take();
+                    return;
+                };
+
+                let Some(field_pos) = class.field_pos(field_id) else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[InsertBytes] Why field id not here here ??"));
+                    global_state().selection_field.take();
+                    return;
+                };
+
+                let padding = allocate_padding(b);
+                for p in padding {
+                    class.fields.insert(field_pos, p);
+                }
+            }
         };
     }
 }
 impl eframe::App for MakeClassApp {
     fn update(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_theme(Theme::Dark);
-        if let Some(toolbar_response) = self.toolbar.show(ctx) {
-            self.progress_toolbar_response(toolbar_response);
-        }
+        let mut toolbar_response = self.toolbar.show(ctx);
 
         self.class_list_panel.show(ctx);
         if let Some(r) = self.inspector.show(ctx) {
-            //
+            match r {
+                crate::field::FieldResponse::AddBytes(b) => {
+                    toolbar_response.replace(ToolBarResponse::AddBytes(b));
+                }
+                crate::field::FieldResponse::InsertBytes(b) => {
+                    toolbar_response.replace(ToolBarResponse::InsertBytes(b));
+                }
+                crate::field::FieldResponse::Delete => {
+                    unimplemented!()
+                }
+            }
+        }
+
+        if let Some(toolbar_response) = toolbar_response {
+            self.progress_toolbar_response(toolbar_response);
         }
 
         let mut style = (*ctx.style()).clone();

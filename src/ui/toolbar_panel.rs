@@ -16,6 +16,10 @@ use crate::field::{
 pub enum ToolBarResponse {
     #[allow(unused)]
     ChangeFieldKind(Box<dyn Field>),
+    /// Add bytes BELLOW selection
+    AddBytes(usize),
+    /// Insert bytes UPPER selection
+    InsertBytes(usize),
 }
 
 #[derive(Default)]

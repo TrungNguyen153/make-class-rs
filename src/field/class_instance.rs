@@ -59,9 +59,13 @@ impl ClassInstanceField {
             ctx.toggle_select(self.id);
         }
 
-        self.display_field_name(ui, ctx, &self.state, Color32::GREEN);
+        let mut field_response = None;
 
-        let mut response = None;
+        if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+            field_response.replace(r);
+        }
+
+        self.display_field_name(ui, ctx, &self.state, Color32::GREEN);
 
         let mut job = LayoutJob::default();
         job.append(
@@ -106,7 +110,7 @@ impl ClassInstanceField {
             },
         );
 
-        response
+        field_response
     }
 
     fn show_body(

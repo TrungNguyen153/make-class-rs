@@ -70,7 +70,7 @@ impl<const N: usize> Field for IntField<N> {
         let address = ctx.address + ctx.offset;
         global_state().memory.read_buf(address, &mut buf);
 
-        let mut response = None;
+        let mut field_response = None;
         ui.horizontal(|ui| {
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
@@ -78,6 +78,10 @@ impl<const N: usize> Field for IntField<N> {
             let r = ui.add(Label::new(job).sense(Sense::click()));
             if r.clicked() {
                 ctx.toggle_select(self.id);
+            }
+
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
             }
 
             self.display_field_name(
@@ -153,6 +157,6 @@ impl<const N: usize> Field for IntField<N> {
         });
 
         ctx.offset += self.field_size();
-        response
+        field_response
     }
 }

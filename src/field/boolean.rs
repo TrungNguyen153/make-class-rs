@@ -67,6 +67,10 @@ impl Field for BoolField {
                 ctx.toggle_select(self.id);
             }
 
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
+            }
+
             self.display_field_name(ui, ctx, &self.state, Color32::GOLD);
 
             display_field_value(

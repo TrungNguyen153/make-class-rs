@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use crate::{
     address::AddressString,
     field::{
-        Field,
+        Field, FieldId,
         boolean::BoolField,
         float::FloatField,
         hex::HexField,
@@ -96,5 +96,13 @@ impl Class {
 
     pub fn add_field(&mut self, field: Box<dyn Field>) {
         self.fields.push(field);
+    }
+
+    pub fn field_pos(&self, field_id: FieldId) -> Option<usize> {
+        self.fields.iter().position(|f| f.id() == field_id)
+    }
+
+    pub fn field_len(&self) -> usize {
+        self.fields.len()
     }
 }

@@ -76,7 +76,7 @@ impl<const TEXT_KIND: usize> Field for TextField<TEXT_KIND> {
             .memory
             .read_buf(address, &mut *self.buffer.borrow_mut());
 
-        let mut response = None;
+        let mut field_response = None;
         ui.horizontal(|ui| {
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
@@ -84,6 +84,9 @@ impl<const TEXT_KIND: usize> Field for TextField<TEXT_KIND> {
             let r = ui.add(Label::new(job).sense(Sense::click()));
             if r.clicked() {
                 ctx.toggle_select(self.id);
+            }
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
             }
 
             self.display_field_name(ui, ctx, &self.state, Color32::LIGHT_RED);
@@ -110,7 +113,7 @@ impl<const TEXT_KIND: usize> Field for TextField<TEXT_KIND> {
             );
         });
         ctx.offset += self.field_size();
-        response
+        field_response
     }
 }
 
@@ -179,7 +182,7 @@ impl<const TEXT_KIND: usize> Field for PointerTextField<TEXT_KIND> {
             .memory
             .read_buf(buf_addr, &mut *self.buffer.borrow_mut());
 
-        let mut response = None;
+        let mut field_response = None;
         ui.horizontal(|ui| {
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
@@ -187,6 +190,10 @@ impl<const TEXT_KIND: usize> Field for PointerTextField<TEXT_KIND> {
             let r = ui.add(Label::new(job).sense(Sense::click()));
             if r.clicked() {
                 ctx.toggle_select(self.id);
+            }
+
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
             }
 
             self.display_field_name(ui, ctx, &self.state, Color32::LIGHT_RED);
@@ -217,6 +224,6 @@ impl<const TEXT_KIND: usize> Field for PointerTextField<TEXT_KIND> {
         });
 
         ctx.offset += self.field_size();
-        response
+        field_response
     }
 }

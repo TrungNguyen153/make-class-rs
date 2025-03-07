@@ -19,7 +19,7 @@ pub struct InspectorContext<'a> {
 
 #[derive(Clone, Copy)]
 pub struct InspectorSelection {
-    pub address: usize,
+    pub inspector_level: usize,
     pub class_id: ClassId,
     pub field_id: FieldId,
 }
@@ -30,18 +30,18 @@ impl<'a> InspectorContext<'a> {
             self.selection.take();
         } else {
             self.selection.replace(InspectorSelection {
-                address: self.address + self.offset,
+                inspector_level: self.inspector_level,
                 class_id: self.class_container,
                 field_id,
             });
         }
     }
 
-    pub fn is_selected(&mut self, field_id: FieldId) -> bool {
-        if let Some(s) = self.selection
-            && s.field_id == field_id
-        {
-            return s.address == self.address + self.offset;
+    pub fn is_selected(&self, field_id: FieldId) -> bool {
+        if let Some(s) = self.selection {
+            return s.field_id == field_id
+                && s.class_id == self.class_container
+                && s.inspector_level == self.inspector_level;
         }
 
         false

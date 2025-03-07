@@ -55,7 +55,7 @@ impl<const N: usize> Field for VectorField<N> {
             std::slice::from_raw_parts_mut(buf.as_mut_ptr() as *mut f32 as *mut u8, buf.len() * 4)
         });
 
-        let mut response = None;
+        let mut field_response = None;
         ui.horizontal(|ui| {
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
@@ -63,6 +63,10 @@ impl<const N: usize> Field for VectorField<N> {
             let r = ui.add(Label::new(job).sense(Sense::click()));
             if r.clicked() {
                 ctx.toggle_select(self.id);
+            }
+
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
             }
 
             self.display_field_name(ui, ctx, &self.state, Color32::LIGHT_GREEN);
@@ -85,6 +89,6 @@ impl<const N: usize> Field for VectorField<N> {
         });
 
         ctx.offset += self.field_size();
-        response
+        field_response
     }
 }

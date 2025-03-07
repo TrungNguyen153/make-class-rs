@@ -168,7 +168,7 @@ impl<const N: usize> Field for HexField<N> {
         global_state()
             .memory
             .read_buf(ctx.address + ctx.offset, &mut buf);
-        let mut response = None;
+        let mut field_response = None;
         ui.horizontal(|ui| {
             let mut job = LayoutJob::default();
             self.display_field_prelude(ui, ctx, &mut job);
@@ -179,14 +179,16 @@ impl<const N: usize> Field for HexField<N> {
                 ctx.toggle_select(self.id);
             }
 
-            // TODO Right click action
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
+            }
 
             self.int_view(ui, ctx, &buf);
             self.float_view(ui, ctx, &buf);
-            self.pointer_view(ui, ctx, &buf, &mut response);
+            self.pointer_view(ui, ctx, &buf, &mut field_response);
         });
         ctx.offset += self.field_size();
-        response
+        field_response
     }
 }
 

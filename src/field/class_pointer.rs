@@ -43,6 +43,7 @@ impl ClassPointerField {
     ) -> Option<FieldResponse> {
         let class = ctx.class_list.get_class(self.class_id.get());
 
+        let mut field_response = None;
         let (text, exists) = if let Some(cl) = class {
             (format!("[{}]", cl.name), true)
         } else {
@@ -59,6 +60,9 @@ impl ClassPointerField {
             ctx.toggle_select(self.id);
         }
 
+        if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+            field_response.replace(r);
+        }
         self.display_field_name(ui, ctx, &self.state, Color32::GREEN);
 
         self.display_ptr_arrow(ui, ctx, Color32::YELLOW);
@@ -72,7 +76,6 @@ impl ClassPointerField {
             |_b| eyre::bail!("unimplemented"),
         );
 
-        let mut response = None;
         let mut job = LayoutJob::default();
         job.append(
             &text,
@@ -115,7 +118,7 @@ impl ClassPointerField {
                 });
             },
         );
-        response
+        field_response
     }
 
     fn show_body(

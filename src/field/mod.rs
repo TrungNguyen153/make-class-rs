@@ -10,7 +10,8 @@ pub mod vector;
 use std::{cell::RefCell, sync::atomic::AtomicU64};
 
 use eframe::egui::{
-    self, Color32, FontSelection, Key, Label, Modifiers, Sense, TextEdit, text::LayoutJob,
+    self, Color32, FontSelection, Id, Key, Label, Modifiers, Sense, TextEdit, popup_below_widget,
+    text::LayoutJob,
 };
 
 use crate::{
@@ -75,7 +76,9 @@ impl FieldState {
 
 #[derive(Debug, Clone)]
 pub enum FieldResponse {
-    //
+    AddBytes(usize),
+    InsertBytes(usize),
+    Delete,
 }
 
 pub trait Field {
@@ -222,6 +225,72 @@ pub trait Field {
             // or select with single click
             ctx.toggle_select(self.id());
         }
+    }
+
+    fn default_field_popup(
+        &self,
+        ui: &mut egui::Ui,
+        ctx: &mut InspectorContext,
+        below_widget_response: &egui::Response,
+    ) -> Option<FieldResponse> {
+        let mut response = None;
+
+        let popup_id = Id::new(format!(
+            "{:?}{}{:?}popup_widget",
+            self.id(),
+            ctx.inspector_level,
+            ctx.class_container
+        ));
+
+        // TODO
+        // wait for egui::popup::Popup
+        // release
+        popup_below_widget(
+            ui,
+            popup_id,
+            below_widget_response,
+            egui::PopupCloseBehavior::CloseOnClickOutside,
+            |ui| {
+                ui.set_width(80.);
+                ui.menu_button(obfstr!("Insert Bytes"), |ui| {
+                    for b in [4, 8, 64, 256, 1024, 2048, 4096usize] {
+                        if ui.button(format!("Insert {b}")).clicked() {
+                            response.replace(FieldResponse::InsertBytes(b));
+                            ui.close_menu();
+                            ui.memory_mut(|m| m.toggle_popup(popup_id));
+                        }
+                    }
+                    if ui.button(obfstr!("Insert ... Bytes")).clicked() {
+                        ui.close_menu();
+                        ui.memory_mut(|m| m.toggle_popup(popup_id));
+                    }
+                });
+
+                ui.menu_button(obfstr!("Add Bytes"), |ui| {
+                    for b in [4, 8, 64, 256, 1024, 2048, 4096usize] {
+                        if ui.button(format!("Add {b}")).clicked() {
+                            response.replace(FieldResponse::AddBytes(b));
+                            ui.close_menu();
+                            ui.memory_mut(|m| m.toggle_popup(popup_id));
+                        }
+                    }
+                    if ui.button(obfstr!("Add ... Bytes")).clicked() {
+                        ui.close_menu();
+                        ui.memory_mut(|m| m.toggle_popup(popup_id));
+                    }
+                });
+            },
+        );
+
+        if below_widget_response.secondary_clicked() {
+            ui.memory_mut(|m| m.toggle_popup(popup_id));
+        }
+
+        // let bellow for trigger select underline
+        if below_widget_response.secondary_clicked() && !ctx.is_selected(self.id()) {
+            ctx.toggle_select(self.id());
+        }
+        response
     }
 }
 

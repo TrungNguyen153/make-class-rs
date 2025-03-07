@@ -64,6 +64,10 @@ impl<const N: usize> Field for FloatField<N> {
                 ctx.toggle_select(self.id);
             }
 
+            if let Some(r) = self.default_field_popup(ui, ctx, &r) {
+                field_response.replace(r);
+            }
+
             self.display_field_name(ui, ctx, &self.state, Color32::LIGHT_RED);
             display_field_value(
                 self,
@@ -74,15 +78,11 @@ impl<const N: usize> Field for FloatField<N> {
                 |buf| match N {
                     4 => {
                         let v = buf.parse::<f32>()?;
-                        info!("{}{v}", obfstr!("Not implement write for: "));
-                        // TODO write
-                        Ok(())
+                        eyre::bail!("{}{v}", obfstr!("unimplemented write float "))
                     }
                     8 => {
                         let v = buf.parse::<f64>()?;
-                        info!("{}{v}", obfstr!("Not implement write for: "));
-                        // TODO write
-                        Ok(())
+                        eyre::bail!("{}{v}", obfstr!("unimplemented write float "))
                     }
                     _ => eyre::bail!("Unsupport Float size: {N}"),
                 },
