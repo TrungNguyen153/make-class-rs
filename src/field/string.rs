@@ -39,12 +39,8 @@ impl<const TEXT_KIND: usize> Field for TextField<TEXT_KIND> {
         self.id
     }
 
-    fn name(&self) -> Option<String> {
-        Some(self.state.name_state.borrow().name.clone())
-    }
-
-    fn set_name(&self, new_name: String) {
-        self.state.name_state.borrow_mut().name = new_name;
+    fn field_state(&self) -> Option<&super::FieldState> {
+        Some(&self.state)
     }
 
     fn field_size(&self) -> usize {
@@ -146,12 +142,8 @@ impl<const TEXT_KIND: usize> Field for PointerTextField<TEXT_KIND> {
         self.id
     }
 
-    fn name(&self) -> Option<String> {
-        Some(self.state.name_state.borrow().name.clone())
-    }
-
-    fn set_name(&self, new_name: String) {
-        self.state.name_state.borrow_mut().name = new_name;
+    fn field_state(&self) -> Option<&super::FieldState> {
+        Some(&self.state)
     }
 
     fn field_size(&self) -> usize {

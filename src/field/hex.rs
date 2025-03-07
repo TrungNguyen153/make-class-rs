@@ -151,12 +151,8 @@ impl<const N: usize> Field for HexField<N> {
         self.id
     }
 
-    fn name(&self) -> Option<String> {
+    fn field_state(&self) -> Option<&super::FieldState> {
         None
-    }
-
-    fn set_name(&self, _new_name: String) {
-        //
     }
 
     fn field_size(&self) -> usize {

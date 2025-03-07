@@ -174,6 +174,15 @@ impl MakeClassApp {
                     class.fields.insert(field_pos, p);
                 }
             }
+            ToolBarResponse::AlignHexFields => {
+                global_state().toasts.info(obfstr!("[AlignFields]"));
+                let Some(class) = global_state().class_list.selected_class_mut() else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[AlignFields] no active class"));
+                    return;
+                };
+            }
         };
     }
 }

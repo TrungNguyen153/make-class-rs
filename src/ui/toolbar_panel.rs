@@ -20,6 +20,7 @@ pub enum ToolBarResponse {
     AddBytes(usize),
     /// Insert bytes UPPER selection
     InsertBytes(usize),
+    AlignHexFields,
 }
 
 #[derive(Default)]

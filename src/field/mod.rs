@@ -84,9 +84,27 @@ pub enum FieldResponse {
 pub trait Field {
     fn id(&self) -> FieldId;
 
-    fn name(&self) -> Option<String>;
+    fn field_state(&self) -> Option<&FieldState>;
 
-    fn set_name(&self, new_name: String);
+    fn name(&self) -> Option<String> {
+        if let Some(state) = self.field_state() {
+            return Some(state.name_state.borrow().name.clone());
+        }
+        None
+    }
+
+    fn set_name(&self, new_name: String) {
+        if let Some(state) = self.field_state() {
+            state.name_state.borrow_mut().name = new_name;
+        }
+    }
+
+    fn had_name(&self) -> bool {
+        if let Some(state) = self.field_state() {
+            return !state.name_state.borrow().name.is_empty();
+        }
+        false
+    }
 
     fn field_size(&self) -> usize;
 
@@ -107,7 +125,7 @@ pub trait Field {
     ) {
         let egui_ctx = ui.ctx();
         job.append(&create_text_offset_format(ctx.offset), 0., {
-            let mut tf = create_text_format(ctx.is_selected(self.id()), Color32::KHAKI);
+            let tf = create_text_format(ctx.is_selected(self.id()), Color32::KHAKI);
             // Highlight unaligned fields
             // if ctx.offset % 8 != 0 {
             //     tf.underline = Stroke::new(1., Color32::RED);

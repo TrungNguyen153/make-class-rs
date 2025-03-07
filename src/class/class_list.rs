@@ -55,6 +55,13 @@ impl ClassList {
         None
     }
 
+    pub fn selected_class_mut(&mut self) -> Option<&mut Class> {
+        if let Some(id) = self.selected {
+            return self.classes.iter_mut().find(|c| c.id() == id);
+        }
+        None
+    }
+
     pub fn add_class(&mut self, name: impl Into<String>) -> ClassId {
         let id = fastrand::usize(..);
         self.classes.push(Class::new(id, name));
