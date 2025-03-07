@@ -297,6 +297,11 @@ pub trait Field {
                         ui.memory_mut(|m| m.toggle_popup(popup_id));
                     }
                 });
+
+                if ui.button(obfstr!("Delete")).clicked() {
+                    response.replace(FieldResponse::Delete);
+                    ui.memory_mut(|m| m.toggle_popup(popup_id));
+                }
             },
         );
 

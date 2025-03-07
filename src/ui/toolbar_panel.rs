@@ -21,6 +21,7 @@ pub enum ToolBarResponse {
     /// Insert bytes UPPER selection
     InsertBytes(usize),
     AlignHexFields,
+    DeleteField,
 }
 
 #[derive(Default)]
@@ -54,14 +55,12 @@ impl ToolBarPanel {
 
                     ui.separator();
 
-                    if ui.button("Generator").clicked() {
-                        //
-                    }
+                    if ui.button("Generator").clicked() {}
 
                     ui.separator();
 
-                    if ui.button("Spider").clicked() {
-                        //
+                    if ui.button("Align Class").clicked() {
+                        response.replace(ToolBarResponse::AlignHexFields);
                     }
 
                     ui.separator();

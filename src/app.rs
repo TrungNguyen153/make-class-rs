@@ -120,25 +120,9 @@ impl MakeClassApp {
                     return;
                 };
 
-                let Some(field_pos) = class.field_pos(field_id) else {
-                    global_state()
-                        .toasts
-                        .error(obfstr!("[AddBytes] Why field id not here here ??"));
+                if let Err(e) = class.add_bytes(b, field_id) {
+                    global_state().toasts.error(format!("{e}"));
                     global_state().selection_field.take();
-                    return;
-                };
-
-                let padding = allocate_padding(b);
-
-                let field_len = class.field_len();
-
-                if field_pos == field_len {
-                    // field at end
-                    class.extend_fields(padding);
-                } else {
-                    for p in padding {
-                        class.fields.insert(field_pos + 1, p);
-                    }
                 }
             }
             ToolBarResponse::InsertBytes(b) => {
@@ -161,17 +145,9 @@ impl MakeClassApp {
                     return;
                 };
 
-                let Some(field_pos) = class.field_pos(field_id) else {
-                    global_state()
-                        .toasts
-                        .error(obfstr!("[InsertBytes] Why field id not here here ??"));
+                if let Err(e) = class.insert_bytes(b, field_id) {
+                    global_state().toasts.error(format!("{e}"));
                     global_state().selection_field.take();
-                    return;
-                };
-
-                let padding = allocate_padding(b);
-                for p in padding {
-                    class.fields.insert(field_pos, p);
                 }
             }
             ToolBarResponse::AlignHexFields => {
@@ -182,6 +158,68 @@ impl MakeClassApp {
                         .error(obfstr!("[AlignFields] no active class"));
                     return;
                 };
+
+                // start pos 1
+                // pos 0 alway align
+                let mut iter_pos = 1;
+                let mut offset = 0;
+                while iter_pos < class.field_len() - 1 {
+                    let field = &class.fields[iter_pos];
+                    let field_id = field.id();
+                    let next_field = &class.fields[iter_pos + 1];
+                    let next_field_id = next_field.id();
+
+                    // next field is named
+                    // cant add bytes
+                    if next_field.had_name() {
+                        // move up 2
+                        iter_pos += 2;
+                        offset += field.field_size() + next_field.field_size();
+                        continue;
+                    }
+
+                    // already align
+                    if offset % 4 == 0 {
+                        iter_pos += 1;
+                        offset += field.field_size();
+                        continue;
+                    }
+
+                    let missing = offset % 4;
+                    let next_field_size = next_field.field_size();
+
+                    if missing <= next_field_size {
+                        // we break next field for add align
+                        // insert N bytes
+                        // cut out N bytes
+                        let steal_size = next_field_size - missing;
+                        let added_index = class.insert_bytes(missing, field_id).unwrap();
+                        offset += missing;
+                        iter_pos += added_index;
+                        class.remove_field_by_id(next_field_id).unwrap();
+                        class.add_bytes(steal_size, field_id).unwrap();
+                    } else {
+                        // go next
+                        iter_pos += 1;
+                        offset += field.field_size();
+                    }
+                }
+            }
+            ToolBarResponse::DeleteField => {
+                let Some(selected) = global_state().selection_field.take() else {
+                    global_state()
+                        .toasts
+                        .error(obfstr!("[DeleteField] Why we not have selected field"));
+                    return;
+                };
+
+                let Some(class) = global_state().class_list.get_class_mut(selected.class_id) else {
+                    return;
+                };
+
+                if let Err(e) = class.remove_field_by_id(selected.field_id) {
+                    global_state().toasts.error(format!("{e}"));
+                }
             }
         };
     }
@@ -201,7 +239,7 @@ impl eframe::App for MakeClassApp {
                     toolbar_response.replace(ToolBarResponse::InsertBytes(b));
                 }
                 crate::field::FieldResponse::Delete => {
-                    unimplemented!()
+                    toolbar_response.replace(ToolBarResponse::DeleteField);
                 }
             }
         }

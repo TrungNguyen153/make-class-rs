@@ -5,7 +5,7 @@ use std::cell::RefCell;
 use crate::{
     address::AddressString,
     field::{
-        Field, FieldId,
+        Field, FieldId, allocate_padding,
         boolean::BoolField,
         float::FloatField,
         hex::HexField,
@@ -104,5 +104,53 @@ impl Class {
 
     pub fn field_len(&self) -> usize {
         self.fields.len()
+    }
+
+    /// return number of field inserted
+    pub fn insert_bytes(&mut self, byte_count: usize, at_field_id: FieldId) -> eyre::Result<usize> {
+        let Some(field_pos) = self.field_pos(at_field_id) else {
+            eyre::bail!("{}", obfstr!("[InsertBytes] Why field id not here here ??"))
+        };
+
+        let mut count = 0;
+
+        let padding = allocate_padding(byte_count);
+        for p in padding {
+            count += 1;
+            self.fields.insert(field_pos, p);
+        }
+        Ok(count)
+    }
+
+    /// return number of field added
+    pub fn add_bytes(&mut self, byte_count: usize, at_field_id: FieldId) -> eyre::Result<usize> {
+        let Some(field_pos) = self.field_pos(at_field_id) else {
+            eyre::bail!("{}", obfstr!("[AddBytes] Why field id not here here ??"))
+        };
+
+        let padding = allocate_padding(byte_count);
+
+        let field_len = self.field_len();
+
+        let mut count = 0;
+        if field_pos == field_len {
+            // field at end
+            count += padding.len();
+            self.extend_fields(padding);
+        } else {
+            for p in padding {
+                count += 1;
+                self.fields.insert(field_pos + 1, p);
+            }
+        }
+        Ok(count)
+    }
+
+    pub fn remove_field_by_id(&mut self, field_id: FieldId) -> eyre::Result<()> {
+        if let Some(p) = self.fields.iter().position(|f| f.id() == field_id) {
+            self.fields.remove(p);
+            return Ok(());
+        }
+        eyre::bail!("{}", obfstr!("Field not found"))
     }
 }
